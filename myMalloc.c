@@ -15,3 +15,8 @@ void *my_malloc(size_t size) {
 void free(void *pointer) {
 
 }
+
+int main(int argc, char **argc) {
+    printf("hello world\n");
+    return 0;
+}
