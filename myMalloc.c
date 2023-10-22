@@ -24,7 +24,7 @@ int is_free(uint16_t address) {
 
 // revoie la taille d'un bloc alloué ou non
 uint16_t get_size(uint16_t address) {
-    return MY_HEAP[address-2] << 8 + MY_HEAP[address-1] & 254;
+    return (MY_HEAP[address-2] << 8) + (MY_HEAP[address-1] & 254);
 }
 
 uint16_t search_for_free_block(size_t size, uint16_t start_address) {
@@ -72,9 +72,9 @@ void print_memory() {
 
 int main(int argc, char **argv) {
     init();
-    my_malloc(10);
-    print_memory();
-    my_malloc(300);
-    print_memory();
+    // my_malloc(10);
+    // print_memory();
+    // my_malloc(300);
+    // print_memory();
     return 0;
 }
