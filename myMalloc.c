@@ -1,5 +1,5 @@
 #define MEMORY_SIZE (uint16_t)500
-#define NO_SPACE_FOUND -1
+#define NO_SPACE_FOUND MEMORY_SIZE+1
 
 #include <stdio.h>
 #include <stdint.h>
@@ -31,16 +31,16 @@ uint16_t get_size(uint16_t address) {
 }
 
 uint16_t search_for_free_block(size_t size, uint16_t start_address) {
-    if (start_address > MEMORY_SIZE) return NO_SPACE_FOUND;
+    if (start_address >= MEMORY_SIZE) return NO_SPACE_FOUND;
 
     if (!is_free(start_address)){
         return search_for_free_block(size, start_address + get_size(start_address));
     }
     uint16_t current_size = get_size(start_address);
-
-    uint16_t next_address = start_address;
+    uint16_t next_address;
     while (current_size-4 < size) {
-        next_address += current_size;
+        next_address = start_address + current_size;
+        if (next_address > MEMORY_SIZE) return NO_SPACE_FOUND;
         if (!is_free(next_address)) return search_for_free_block(size, next_address);
 
         current_size += get_size(next_address) - 4;
@@ -55,7 +55,7 @@ void *my_malloc(size_t size) {
     uint16_t address = search_for_free_block(size, 2);
     //printf("%d\n", address);
     if (address == NO_SPACE_FOUND) return NULL;
-
+    printf("address : %d\n", address);
     uint16_t initial_size = get_size(address);
 
     // méta-données de début
@@ -65,12 +65,14 @@ void *my_malloc(size_t size) {
     MY_HEAP[address+size] = (uint8_t)((size+4) >> 8);
     MY_HEAP[address+size+1] = (uint8_t)((size+4) & 254)+1;
 
-    // méta-données de début du reste
-    MY_HEAP[address+size+2] = (uint8_t)((initial_size-size-4) >> 8);
-    MY_HEAP[address+size+3] = (uint8_t)((initial_size-size-4) & 254);
-    // méta-données de fin du reste
-    MY_HEAP[address+initial_size-4] = (uint8_t)((initial_size-size-4) >> 8);
-    MY_HEAP[address+initial_size-3] = (uint8_t)((initial_size-size-4) & 254);
+    if (initial_size-size >= 6) {
+        // méta-données de début du reste
+        MY_HEAP[address+size+2] = (uint8_t)((initial_size-size-4) >> 8);
+        MY_HEAP[address+size+3] = (uint8_t)((initial_size-size-4) & 254);
+        // méta-données de fin du reste
+        MY_HEAP[address+initial_size-4] = (uint8_t)((initial_size-size-4) >> 8);
+        MY_HEAP[address+initial_size-3] = (uint8_t)((initial_size-size-4) & 254);
+    }
 
     return (void*)(long)address;
 }
@@ -91,7 +93,8 @@ int main(int argc, char **argv) {
     my_malloc(10);
     my_malloc(300);
     my_malloc(300);
-    // print_memory();
+    my_malloc(178);
+    print_memory();
 
     return 0;
 }
