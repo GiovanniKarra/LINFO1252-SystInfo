@@ -30,6 +30,7 @@ uint16_t get_size(uint16_t address) {
     return (MY_HEAP[address-2] << 8) + (MY_HEAP[address-1] & 254);
 }
 
+// cherche un bloc libre de taille acceptable récursivement
 uint16_t search_for_free_block(size_t size, uint16_t start_address) {
     if (start_address >= MEMORY_SIZE) return NO_SPACE_FOUND;
 
@@ -81,6 +82,7 @@ void free(void *pointer) {
 
 }
 
+// affiche l'entièreté de la mémoire
 void print_memory() {
     printf("|");
     for (int i = 0; i < MEMORY_SIZE; i++)
