@@ -56,7 +56,7 @@ void *my_malloc(size_t size) {
     uint16_t address = search_for_free_block(size, 2);
     //printf("%d\n", address);
     if (address == NO_SPACE_FOUND) return NULL;
-    printf("address : %d\n", address);
+    //printf("address : %d\n", address);
     uint16_t initial_size = get_size(address);
 
     // méta-données de début
@@ -94,8 +94,8 @@ int main(int argc, char **argv) {
     init();
     my_malloc(10);
     my_malloc(300);
-    my_malloc(300);
-    my_malloc(178);
+    //my_malloc(300);
+    //my_malloc(178);
     print_memory();
 
     return 0;
