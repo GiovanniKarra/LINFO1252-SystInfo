@@ -30,6 +30,16 @@ uint16_t get_size(uint16_t address) {
     return (MY_HEAP[address-2] << 8) + (MY_HEAP[address-1] & 254);
 }
 
+// met les meta-données de l'adresse donnée
+void set_metadata(uint16_t address, uint16_t size, uint8_t allocated) {
+    // méta-données de début
+    MY_HEAP[address-2] = (uint8_t)((size) >> 8);
+    MY_HEAP[address-1] = (uint8_t)((size) & 254)+allocated;
+    // méta-données de fin
+    MY_HEAP[address+size-4] = (uint8_t)((size) >> 8);
+    MY_HEAP[address+size-3] = (uint8_t)((size) & 254)+allocated;
+}
+
 // cherche un bloc libre de taille acceptable récursivement
 uint16_t search_for_free_block(size_t size, uint16_t start_address) {
     if (start_address >= MEMORY_SIZE) return NO_SPACE_FOUND;
@@ -58,21 +68,11 @@ void *my_malloc(size_t size) {
     if (address == NO_SPACE_FOUND) return NULL;
     //printf("address : %d\n", address);
     uint16_t initial_size = get_size(address);
-
-    // méta-données de début
-    MY_HEAP[address-2] = (uint8_t)((size+4) >> 8);
-    MY_HEAP[address-1] = (uint8_t)((size+4) & 254)+1;
-    // méta-données de fin
-    MY_HEAP[address+size] = (uint8_t)((size+4) >> 8);
-    MY_HEAP[address+size+1] = (uint8_t)((size+4) & 254)+1;
+    
+    set_metadata(address, size+4, 1);
 
     if (initial_size-size >= 6) {
-        // méta-données de début du reste
-        MY_HEAP[address+size+2] = (uint8_t)((initial_size-size-4) >> 8);
-        MY_HEAP[address+size+3] = (uint8_t)((initial_size-size-4) & 254);
-        // méta-données de fin du reste
-        MY_HEAP[address+initial_size-4] = (uint8_t)((initial_size-size-4) >> 8);
-        MY_HEAP[address+initial_size-3] = (uint8_t)((initial_size-size-4) & 254);
+        set_metadata(address+size+4, initial_size-size-4, 0);
     }
 
     return (void*)(long)address;
