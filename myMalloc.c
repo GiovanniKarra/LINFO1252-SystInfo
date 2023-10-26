@@ -13,11 +13,13 @@ void init() {
         MY_HEAP[i] = 0;
     }
     // premier bloc = libre et fait la taille de toute le mémoire
-    MY_HEAP[0] = (uint8_t)(MEMORY_SIZE >> 8);
-    MY_HEAP[1] = (uint8_t)(MEMORY_SIZE & 254);
+    set_metadata(MEMORY_SIZE, 2, 0);
 
-    MY_HEAP[MEMORY_SIZE-2] = (uint8_t)(MEMORY_SIZE >> 8);
-    MY_HEAP[MEMORY_SIZE-1] = (uint8_t)(MEMORY_SIZE & 254);
+    //MY_HEAP[0] = (uint8_t)(MEMORY_SIZE >> 8);
+    //MY_HEAP[1] = (uint8_t)(MEMORY_SIZE & 254);
+
+    //MY_HEAP[MEMORY_SIZE-2] = (uint8_t)(MEMORY_SIZE >> 8);
+    //MY_HEAP[MEMORY_SIZE-1] = (uint8_t)(MEMORY_SIZE & 254);
 }
 
 // revoie 1 si le bloc est libre, 0 sinon
