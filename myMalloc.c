@@ -27,9 +27,19 @@ int is_free(uint16_t address) {
     return (MY_HEAP[address-1] & 1) == 0;
 }
 
+// cf is_free(), mais pour la fin du bloc
+int is_free_end(uint16_t address) {
+    return (MY_HEAP[address+2] & 1) == 0;
+}
+
 // revoie la taille d'un bloc alloué ou non (méta-données comrpises)
 uint16_t get_size(uint16_t address) {
     return (MY_HEAP[address-2] << 8) + (MY_HEAP[address-1] & 254);
+}
+
+// cf get_size, mais pour la fin du bloc
+uint16_t get_size_end(uint16_t address) {
+    return (MY_HEAP[address+1] << 8) + (MY_HEAP[address+2] & 254);
 }
 
 // met les meta-données de l'adresse donnée
