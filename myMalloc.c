@@ -7,20 +7,6 @@
 
 uint8_t MY_HEAP[MEMORY_SIZE];
 
-void init() {
-    // remise à 0 pour éviter d'avoir des fausses méta-données
-    for (int i = 0; i < MEMORY_SIZE; i++) {
-        MY_HEAP[i] = 0;
-    }
-    // premier bloc = libre et fait la taille de toute le mémoire
-    set_metadata(MEMORY_SIZE, 2, 0);
-
-    //MY_HEAP[0] = (uint8_t)(MEMORY_SIZE >> 8);
-    //MY_HEAP[1] = (uint8_t)(MEMORY_SIZE & 254);
-
-    //MY_HEAP[MEMORY_SIZE-2] = (uint8_t)(MEMORY_SIZE >> 8);
-    //MY_HEAP[MEMORY_SIZE-1] = (uint8_t)(MEMORY_SIZE & 254);
-}
 
 // revoie 1 si le bloc est libre, 0 sinon
 int is_free(uint16_t address) {
@@ -45,11 +31,11 @@ uint16_t get_size_end(uint16_t address) {
 // met les meta-données de l'adresse donnée
 void set_metadata(uint16_t address, uint16_t size, uint8_t allocated) {
     // méta-données de début
-    MY_HEAP[address-2] = (uint8_t)((size) >> 8);
-    MY_HEAP[address-1] = (uint8_t)((size) & 254)+allocated;
+    MY_HEAP[address-2] = (uint8_t)(size >> 8);
+    MY_HEAP[address-1] = (uint8_t)((size & 254)+allocated);
     // méta-données de fin
-    MY_HEAP[address+size-4] = (uint8_t)((size) >> 8);
-    MY_HEAP[address+size-3] = (uint8_t)((size) & 254)+allocated;
+    MY_HEAP[address+size-4] = (uint8_t)(size >> 8);
+    MY_HEAP[address+size-3] = (uint8_t)((size & 254)+allocated);
 }
 
 // cherche un bloc libre de taille acceptable récursivement
@@ -101,6 +87,22 @@ void print_memory() {
         printf(" %d |", MY_HEAP[i]);
     printf("\n\n");
 }
+
+void init() {
+    // remise à 0 pour éviter d'avoir des fausses méta-données
+    for (int i = 0; i < MEMORY_SIZE; i++) {
+        MY_HEAP[i] = 0;
+    }
+    // premier bloc = libre et fait la taille de toute le mémoire
+    set_metadata(2, MEMORY_SIZE, 0);
+
+    // MY_HEAP[0] = (uint8_t)(MEMORY_SIZE >> 8);
+    // MY_HEAP[1] = (uint8_t)(MEMORY_SIZE & 254);
+
+    // MY_HEAP[MEMORY_SIZE-2] = (uint8_t)(MEMORY_SIZE >> 8);
+    // MY_HEAP[MEMORY_SIZE-1] = (uint8_t)(MEMORY_SIZE & 254);
+}
+
 
 int main(int argc, char **argv) {
     init();
