@@ -1,4 +1,4 @@
-#define MEMORY_SIZE (uint16_t)500
+#define MEMORY_SIZE (uint16_t)30
 #define NO_SPACE_FOUND MEMORY_SIZE+1
 
 #include <stdio.h>
@@ -18,7 +18,7 @@ int is_free_end(uint16_t address) {
     return (MY_HEAP[address+2] & 1) == 0;
 }
 
-// revoie la taille d'un bloc alloué ou non (méta-données comrpises)
+// revoie la taille d'un bloc alloué ou non (méta-données comprises)
 uint16_t get_size(uint16_t address) {
     return (MY_HEAP[address-2] << 8) + (MY_HEAP[address-1] & 254);
 }
@@ -36,6 +36,15 @@ void set_metadata(uint16_t address, uint16_t size, uint8_t allocated) {
     // méta-données de fin
     MY_HEAP[address+size-4] = (uint8_t)(size >> 8);
     MY_HEAP[address+size-3] = (uint8_t)((size & 254)+allocated);
+}
+
+void set_metadata_end(uint16_t address, uint16_t size, uint8_t allocated) {
+    // méta-données de la fin
+    MY_HEAP[address+1] = (uint8_t)(size >> 8);
+    MY_HEAP[address+2] = (uint8_t)((size & 254)+allocated);
+    // méta-données du début
+    MY_HEAP[address-size+3] = (uint8_t)(size >> 8);
+    MY_HEAP[address-size+4] = (uint8_t)((size & 254)+allocated);
 }
 
 // cherche un bloc libre de taille acceptable récursivement
@@ -76,8 +85,51 @@ void *my_malloc(size_t size) {
     return (void*)(long)address;
 }
 
-void free(void *pointer) {
 
+void free(void *pointer) {
+    //récupère l'adresse du pointeur
+    uint16_t address = (uint16_t)(long)pointer;
+
+    //gère les cas limites
+    if (address >= MEMORY_SIZE || is_free(address)) {
+        return;
+    }
+
+    //libère la mémoire
+    uint16_t size = get_size(address);
+    set_metadata(address, size, 0);
+
+    //Fusionne les blocs postérieurs
+    uint16_t next_address = address + size;
+    //printf("next_address : %d\n", next_address);
+    while (next_address < MEMORY_SIZE && is_free(next_address)) {
+        uint16_t next_size = get_size(next_address);
+        size += next_size;
+        //printf("size : %d\n", size);
+        set_metadata(address, size, 0);
+        set_metadata(next_address, 0, 0);
+        next_address += next_size;
+    }
+
+    //Fusionne les blocs antérieurs
+    uint16_t size_back = get_size(address);
+    //printf("size_back : %d\n", size_back);
+    if (address >= 5){
+        uint16_t prev_address = address -5;
+        address = prev_address + size;
+        //printf("prev_address : %d\n", prev_address);
+        while (is_free_end(prev_address)) {
+            uint16_t prev_size = get_size_end(prev_address);
+            size_back += prev_size;
+            set_metadata_end(address, size_back, 0);
+            //printf("size_back : %d\n", size_back);
+            set_metadata_end(prev_address, 0, 0);
+            if (prev_size > prev_address){
+                return;
+            }
+            prev_address -= prev_size;
+        }
+    }
 }
 
 // affiche l'entièreté de la mémoire
@@ -103,14 +155,33 @@ void init() {
     // MY_HEAP[MEMORY_SIZE-1] = (uint8_t)(MEMORY_SIZE & 254);
 }
 
-
 int main(int argc, char **argv) {
     init();
-    my_malloc(10);
-    my_malloc(300);
-    //my_malloc(300);
-    //my_malloc(178);
+    
+    printf("Allocation 1\n");
+    void *ptr1 = my_malloc(2);
+    print_memory();
+    
+    printf("Allocation 2\n");
+    void *ptr2 = my_malloc(4);
+    print_memory();
+    
+    printf("Allocation 3\n");
+    void *ptr3 = my_malloc(6);
+    print_memory();
+    
+    printf("Libération de la mémoire (ptr3)\n");
+    free(ptr3);
     print_memory();
 
+    printf("Libération de la mémoire (ptr1)\n");
+    free(ptr1);
+    print_memory();
+
+    printf("Libération de la mémoire (ptr2)\n");
+    free(ptr2);
+    print_memory();
+    
     return 0;
 }
+
