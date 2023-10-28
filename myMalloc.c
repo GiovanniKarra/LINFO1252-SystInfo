@@ -51,17 +51,8 @@ void set_metadata_end(uint16_t address, uint16_t size, uint8_t allocated) {
 uint16_t search_for_free_block(size_t size, uint16_t start_address) {
     if (start_address >= MEMORY_SIZE) return NO_SPACE_FOUND;
 
-    if (!is_free(start_address)){
+    if (!is_free(start_address) || get_size(start_address) < size - 4){
         return search_for_free_block(size, start_address + get_size(start_address));
-    }
-    uint16_t current_size = get_size(start_address);
-    uint16_t next_address;
-    while (current_size-4 < size) {
-        next_address = start_address + current_size;
-        if (next_address > MEMORY_SIZE) return NO_SPACE_FOUND;
-        if (!is_free(next_address)) return search_for_free_block(size, next_address);
-
-        current_size += get_size(next_address) - 4;
     }
 
     return start_address;
@@ -71,24 +62,35 @@ void *my_malloc(size_t size) {
     // si la taille est impaire, ajouter 1 pour la rendre paire
     size += size % 2;
     uint16_t address = search_for_free_block(size, 2);
-    //printf("%d\n", address);
     if (address == NO_SPACE_FOUND) return NULL;
-    //printf("address : %d\n", address);
+    
     uint16_t initial_size = get_size(address);
     
-    set_metadata(address, size+4, 1);
-
     if (initial_size-size >= 6) {
         set_metadata(address+size+4, initial_size-size-4, 0);
-    }
+    } else size = initial_size;
+
+    set_metadata(address, size+4, 1);
 
     return (void*)(long)address;
 }
 
+// vérifie si une adresse donnée est valide
+int is_valid(uint16_t address) {
+    uint16_t current_address = 2;
 
-void free(void *pointer) {
+    while (current_address < address) {
+        current_address += get_size(current_address);
+    }
+
+    return current_address == address;
+}
+
+void my_free(void *pointer) {
     //récupère l'adresse du pointeur
     uint16_t address = (uint16_t)(long)pointer;
+
+    if (!is_valid(address)) return;
 
     //gère les cas limites
     if (address >= MEMORY_SIZE || is_free(address)) {
@@ -101,29 +103,27 @@ void free(void *pointer) {
 
     //Fusionne les blocs postérieurs
     uint16_t next_address = address + size;
-    //printf("next_address : %d\n", next_address);
+
     while (next_address < MEMORY_SIZE && is_free(next_address)) {
         uint16_t next_size = get_size(next_address);
         size += next_size;
-        //printf("size : %d\n", size);
+
         set_metadata(address, size, 0);
-        set_metadata(next_address, 0, 0);
+        //set_metadata(next_address, 0, 0);
+
         next_address += next_size;
     }
 
     //Fusionne les blocs antérieurs
     uint16_t size_back = get_size(address);
-    //printf("size_back : %d\n", size_back);
     if (address >= 5){
-        uint16_t prev_address = address -5;
+        uint16_t prev_address = address - 5;
         address = prev_address + size;
-        //printf("prev_address : %d\n", prev_address);
         while (is_free_end(prev_address)) {
             uint16_t prev_size = get_size_end(prev_address);
             size_back += prev_size;
             set_metadata_end(address, size_back, 0);
-            //printf("size_back : %d\n", size_back);
-            set_metadata_end(prev_address, 0, 0);
+            //set_metadata_end(prev_address, 0, 0);
             if (prev_size > prev_address){
                 return;
             }
@@ -147,12 +147,6 @@ void init() {
     }
     // premier bloc = libre et fait la taille de toute le mémoire
     set_metadata(2, MEMORY_SIZE, 0);
-
-    // MY_HEAP[0] = (uint8_t)(MEMORY_SIZE >> 8);
-    // MY_HEAP[1] = (uint8_t)(MEMORY_SIZE & 254);
-
-    // MY_HEAP[MEMORY_SIZE-2] = (uint8_t)(MEMORY_SIZE >> 8);
-    // MY_HEAP[MEMORY_SIZE-1] = (uint8_t)(MEMORY_SIZE & 254);
 }
 
 int main(int argc, char **argv) {
@@ -170,16 +164,19 @@ int main(int argc, char **argv) {
     void *ptr3 = my_malloc(6);
     print_memory();
     
+    printf("\n\n%ld est une adresse valide ? %d\n", (long)ptr2, is_valid((long)ptr2));
+    printf("%ld est une adresse valide ? %d\n\n\n", (long)ptr2+1, is_valid((long)ptr2+1));
+
     printf("Libération de la mémoire (ptr3)\n");
-    free(ptr3);
+    my_free(ptr3);
     print_memory();
 
     printf("Libération de la mémoire (ptr1)\n");
-    free(ptr1);
+    my_free(ptr1);
     print_memory();
 
     printf("Libération de la mémoire (ptr2)\n");
-    free(ptr2);
+    my_free(ptr2);
     print_memory();
     
     return 0;
