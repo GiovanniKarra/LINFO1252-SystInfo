@@ -1,4 +1,4 @@
-#define MEMORY_SIZE (uint16_t)30
+#define MEMORY_SIZE (uint16_t)5000
 #define NO_SPACE_FOUND MEMORY_SIZE+1
 
 #include <stdio.h>
@@ -49,9 +49,9 @@ void set_metadata_end(uint16_t address, uint16_t size, uint8_t allocated) {
 
 // cherche un bloc libre de taille acceptable récursivement
 uint16_t search_for_free_block(size_t size, uint16_t start_address) {
-    if (start_address >= MEMORY_SIZE) return NO_SPACE_FOUND;
+    if (start_address >= MEMORY_SIZE || size <= 0) return NO_SPACE_FOUND;
 
-    if (!is_free(start_address) || get_size(start_address) < size - 4){
+    if (!is_free(start_address) || get_size(start_address) < size + 4){
         return search_for_free_block(size, start_address + get_size(start_address));
     }
 
@@ -61,14 +61,15 @@ uint16_t search_for_free_block(size_t size, uint16_t start_address) {
 void *my_malloc(size_t size) {
     // si la taille est impaire, ajouter 1 pour la rendre paire
     size += size % 2;
+
     uint16_t address = search_for_free_block(size, 2);
     if (address == NO_SPACE_FOUND) return NULL;
     
     uint16_t initial_size = get_size(address);
     
-    if (initial_size-size >= 6) {
+    if (initial_size-size-4 >= 6) {
         set_metadata(address+size+4, initial_size-size-4, 0);
-    } else size = initial_size;
+    } else size = initial_size-4;
 
     set_metadata(address, size+4, 1);
 
@@ -157,26 +158,34 @@ int main(int argc, char **argv) {
     print_memory();
     
     printf("Allocation 2\n");
-    void *ptr2 = my_malloc(4);
+    void *ptr2 = my_malloc(8);
     print_memory();
     
     printf("Allocation 3\n");
-    void *ptr3 = my_malloc(6);
+    void *ptr3 = my_malloc(4);
     print_memory();
     
-    printf("\n\n%ld est une adresse valide ? %d\n", (long)ptr2, is_valid((long)ptr2));
-    printf("%ld est une adresse valide ? %d\n\n\n", (long)ptr2+1, is_valid((long)ptr2+1));
+    // printf("\n\n%ld est une adresse valide ? %d\n", (long)ptr2, is_valid((long)ptr2));
+    // printf("%ld est une adresse valide ? %d\n\n\n", (long)ptr2+1, is_valid((long)ptr2+1));
 
-    printf("Libération de la mémoire (ptr3)\n");
-    my_free(ptr3);
-    print_memory();
+    // printf("Libération de la mémoire (ptr3)\n");
+    // my_free(ptr3);
+    // print_memory();
 
-    printf("Libération de la mémoire (ptr1)\n");
-    my_free(ptr1);
-    print_memory();
+    // printf("Libération de la mémoire (ptr1)\n");
+    // my_free(ptr1);
+    // print_memory();
 
     printf("Libération de la mémoire (ptr2)\n");
     my_free(ptr2);
+    print_memory();
+
+    printf("Allocation 4\n");
+    ptr2 = my_malloc(1);
+    print_memory();
+
+    printf("Allocation 5\n");
+    void *ptr4 = my_malloc(2);
     print_memory();
     
     return 0;
