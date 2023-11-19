@@ -5,7 +5,6 @@ all:
 
 philo: philosophes.c
 	$(GCC) -o philosophes philosophes.c
-	./philosophes
 
 clean:
 	rm philosophes
