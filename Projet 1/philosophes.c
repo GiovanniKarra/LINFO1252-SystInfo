@@ -89,5 +89,8 @@ int main(int argc, char const *argv[]) {
         if (err != 0) return 1;
     }
 
+    // FREE RESSOURCES
+    free(baguette);
+
     return 0;
 }

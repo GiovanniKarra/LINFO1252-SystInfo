@@ -1,25 +1,49 @@
 #!/bin/bash
 
-FICHIER_MESURES_PHILO="mesures_philo.csv"
 NB_MESURES=5
+FICHIER_MESURES_PHILO="mesures_philo.csv"
+FICHIER_MESURES_PRODCONS="mesures_prodcons.csv"
 
+# PHILO
+# TITRE="NombreDeThreads"
+# for i in $(seq 1 $NB_MESURES); do
+#     TITRE="$TITRE,Essai$i"
+# done
+# echo $TITRE > $FICHIER_MESURES_PHILO
+
+# make clean
+# make philo
+
+# for i in 2 4 8 16 32 64
+# do
+#     LIGNE=$i
+#     for j in 1 2 3 4 5
+#     do
+#         INFO=`/usr/bin/time -f %e ./philosophes $i 2>&1`
+#         LIGNE="$LIGNE,$INFO"
+#     done
+#     echo $LIGNE >> $FICHIER_MESURES_PHILO
+# done
+
+
+# CONSPROD
 TITRE="NombreDeThreads"
 for i in $(seq 1 $NB_MESURES); do
     TITRE="$TITRE,Essai$i"
 done
-echo $TITRE > $FICHIER_MESURES_PHILO
+echo $TITRE > $FICHIER_MESURES_PRODCONS
 
-#echo "NombreDeThreads,Essai 1,Essai 2,Essai 3,Essai 4,Essai 5" > $FICHIER_MESURES_PHILO
 make clean
-make philo
+make prodcons
 
 for i in 2 4 8 16 32 64
 do
     LIGNE=$i
     for j in 1 2 3 4 5
     do
-        INFO=`/usr/bin/time -f %e ./philosophes $i 2>&1`
+        arg=`expr $i / 2`
+        INFO=`/usr/bin/time -f %e ./prodcons $arg $arg 2>&1`
         LIGNE="$LIGNE,$INFO"
     done
-    echo $LIGNE >> $FICHIER_MESURES_PHILO
+    echo $LIGNE >> $FICHIER_MESURES_PRODCONS
 done
