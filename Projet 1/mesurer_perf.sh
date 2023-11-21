@@ -41,8 +41,8 @@ do
     LIGNE=$i
     for j in 1 2 3 4 5
     do
-        arg=`expr $i / 2`
-        INFO=`/usr/bin/time -f %e ./prodcons $arg $arg 2>&1`
+        a=`expr $i / 2`
+        INFO=`/usr/bin/time -f %e ./prodcons $a $a 2>&1`
         LIGNE="$LIGNE,$INFO"
     done
     echo $LIGNE >> $FICHIER_MESURES_PRODCONS
