@@ -10,5 +10,8 @@ philo: philosophes.c
 prodcons: prodcons.c
 	@$(GCC) -o prodcons prodcons.c $(CFLAGS)
 
+reader_writer: reader_writer.c
+	$(GCC) -o reader_writer reader_writer.c
+
 clean:
 	@rm -f $(RM)
