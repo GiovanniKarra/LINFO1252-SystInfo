@@ -82,9 +82,13 @@ void *reader(void *arg) {
 int main(int argc, char const *argv[]) {
 
     // ARGUMENT PARSING
+    VERBOSE = FALSE;
     if (argc != 3) {
-        printf("\033[31mERROR: EXPECTED 2 ARGUMENTS, BUT GOT %d!\033[0m\n", argc - 1);
-        return 1;
+        if (argc < 3 || strcmp(argv[1], "-v") != 0) {
+            printf("\033[31mERROR : EXPECTED 2 ARGUMENTS, BUT GOT %d !\033[0m\n", argc-1);
+            return 1;
+        }
+        VERBOSE = TRUE;
     }
 
     max_readers = atoi(argv[1]);
@@ -95,8 +99,6 @@ int main(int argc, char const *argv[]) {
         return 1;
     }
     // END ARGUMENT PARSING
-
-    VERBOSE = FALSE; 
 
     sem_init(&wsem, 0, 1);
     sem_init(&rsem, 0, 1);

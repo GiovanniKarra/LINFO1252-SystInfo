@@ -1,6 +1,6 @@
 GCC	= gcc
 CFLAGS = -Wall -std=c99 -g -lpthread
-RM = philosophes prodcons
+RM = philosophes prodcons reader_writer
 
 all: philosophes prodcons reader_writer
 
