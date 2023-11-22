@@ -7,8 +7,8 @@
 
 #define TRUE 1
 #define FALSE 0
-#define NB_READERS 16
-#define NB_WRITERS 4
+#define NB_READERS 2560
+#define NB_WRITERS 640
 
 
 int VERBOSE;
