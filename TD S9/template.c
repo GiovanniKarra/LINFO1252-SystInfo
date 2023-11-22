@@ -9,13 +9,13 @@ static inline void my_inline_func(int *a, int b, int c){
     __asm__(
         "cmpl $10, %0\n\t"
         "jle LESS\n\t"
-        "subl $4, %2\n\t"
-        "movl %2, %0\n\t"
-        "ret\n"
-        "LESS:\n\t"
         "addl $3, %1\n\t"
         "movl %1, %0\n\t"
-        "ret"
+        "jmp end\n"
+        "LESS:\n\t"
+        "subl $4, %2\n\t"
+        "movl %2, %0\n"
+        "end:"
         : "+m" (*a)
         : "r" (b), "r" (c)
     );
