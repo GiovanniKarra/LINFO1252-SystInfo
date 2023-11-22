@@ -16,7 +16,7 @@ int total_readers = 0;
 int total_writers = 0;
 int max_readers;
 int max_writers;
-int global_wr = 1;
+int global_wr = 0;
 int global_rd = 0;
 
 pthread_mutex_t mutex_readcount; // protège readcount
@@ -32,7 +32,7 @@ int current_reader;
 int current_writer;
 
 void *writer(void *arg) {
-    while (global_wr < NB_WRITERS){
+    while (global_wr+1 < NB_WRITERS){
         pthread_mutex_lock(&mutex_writecount);
         writecount++;
         if (writecount == 1) {
@@ -40,12 +40,10 @@ void *writer(void *arg) {
             sem_wait(&rsem);
         }       
         pthread_mutex_unlock(&mutex_writecount);
-        printf("écrivain %d essaye de rentrer\n", global_wr);
         sem_wait(&wsem);
-        printf("écrivain %d  est rentré\n", global_wr);
-        sleep(1);
         global_wr ++;
-        printf("écrivain %d est parti...\n", global_wr-1);
+        printf("écrivain %d  est rentré\n", global_wr);
+        printf("écrivain %d est parti...\n", global_wr);
         sem_post(&wsem);
         pthread_mutex_lock(&mutex_writecount);
         writecount--;
@@ -58,24 +56,25 @@ void *writer(void *arg) {
 }
 
 void *reader(void *arg) {
-    while (global_rd < NB_READERS){
+    while (global_rd+1 < NB_READERS){
         pthread_mutex_lock(&z);
         sem_wait(&rsem);
         pthread_mutex_lock(&mutex_readcount);
         // exclusion mutuelle, readercount
         readcount++;
+        global_rd ++;
         if (readcount == 1) {
             // arrivée du premier reader
             sem_wait(&wsem);
         }
+        printf("lecteur %d est rentré\n",global_rd);
         pthread_mutex_unlock(&mutex_readcount);
         sem_post(&rsem);
         pthread_mutex_unlock(&z);
         //action("reader");
-        global_rd ++;
-        printf("lecteur %d est rentré\n",global_rd);
-        sleep(1);
+        
         pthread_mutex_lock(&mutex_readcount);
+        printf("lecteur %d est parti\n",global_rd);
         // exclusion mutuelle, readcount
         readcount--;
         if (readcount == 0) {
@@ -83,7 +82,7 @@ void *reader(void *arg) {
             sem_post(&wsem);
         }
         pthread_mutex_unlock(&mutex_readcount);
-        printf("lecteur %d est parti\n",global_rd);
+       
     }
     return NULL;
 }
