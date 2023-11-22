@@ -4,6 +4,8 @@
 #include <semaphore.h>
 #include <string.h>
 
+#define RAND_MAX 2147483647*2
+
 #define TRUE 1
 #define FALSE 0
 #define N_CONSPRODS 8192
@@ -14,7 +16,7 @@ int VERBOSE;
 int CONS;
 int PROD;
 
-// int buffer[BUFFER_SIZE];
+int buffer[BUFFER_SIZE];
 
 pthread_mutex_t buffer_mutex;
 sem_t empty;
@@ -34,6 +36,7 @@ void *prod() {
         pthread_mutex_lock(&buffer_mutex);
         // insert in buffer
         if (VERBOSE) printf("inserting in buffer...\n");
+        buffer[*prod_count%BUFFER_SIZE] = rand()-RAND_MAX/2;
         (*prod_count)++;
         pthread_mutex_unlock(&buffer_mutex);
         sem_post(&full);
@@ -44,17 +47,18 @@ void *prod() {
 
 void *cons() {
     while(*cons_count < N_CONSPRODS) {
-        // PROCESS
-        if (VERBOSE) printf("processing...\n");
-        for (int i = 0; i < 10000; i++);
-
         sem_wait(&full);
         pthread_mutex_lock(&buffer_mutex);
         // take from buffer
         if (VERBOSE) printf("reading from buffer...\n");
+        int var = buffer[*cons_count%BUFFER_SIZE];
         (*cons_count)++;
         pthread_mutex_unlock(&buffer_mutex);
         sem_post(&empty);
+
+        // PROCESS
+        if (VERBOSE) printf("processing...\n");
+        for (int i = 0; i < 10000; i++);
     }
 
     return NULL;
@@ -90,9 +94,10 @@ int main(int argc, char const *argv[]) {
 
     cons_count = (int*)malloc(sizeof(int));
     prod_count = (int*)malloc(sizeof(int));
+    if (cons_count == NULL || prod_count == NULL) return 1;
 
     pthread_t threads[CONS+PROD];
-
+    
     // START THREADS
     for (int i = 0; i < PROD; i++) {
         err = pthread_create(&threads[i], NULL, &prod, NULL);
@@ -102,7 +107,6 @@ int main(int argc, char const *argv[]) {
         err = pthread_create(&threads[i], NULL, &cons, NULL);
         if (err != 0) return 1;
     }
-
     // WAIT FOR THREADS
     for (int i = 0; i < PROD+CONS; i++) {
         err = pthread_join(threads[i], NULL);

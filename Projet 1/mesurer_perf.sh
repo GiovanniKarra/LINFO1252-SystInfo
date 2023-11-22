@@ -45,5 +45,6 @@ do
         INFO=`/usr/bin/time -f %e ./prodcons $a $a 2>&1`
         LIGNE="$LIGNE,$INFO"
     done
+    echo "Thread $i fait"
     echo $LIGNE >> $FICHIER_MESURES_PRODCONS
 done
