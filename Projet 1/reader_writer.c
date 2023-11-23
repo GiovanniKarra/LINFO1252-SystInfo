@@ -2,7 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <semaphore.h>
-#include <strings.h>
+#include <string.h>
 #include <unistd.h>
 
 #define TRUE 1
@@ -36,14 +36,16 @@ void *writer(void *arg) {
         pthread_mutex_lock(&mutex_writecount);
         writecount++;
         if (writecount == 1) {
-            printf("le premier écrivain vient d'arriver! Il a le seum parce qu'il attend\n");
+            if (VERBOSE) printf("le premier écrivain vient d'arriver! Il a le seum parce qu'il attend\n");
             sem_wait(&rsem);
         }       
         pthread_mutex_unlock(&mutex_writecount);
         sem_wait(&wsem);
         global_wr ++;
-        printf("écrivain %d  est rentré\n", global_wr);
-        printf("écrivain %d est parti...\n", global_wr);
+        if (VERBOSE) {
+            printf("écrivain %d  est rentré\n", global_wr);
+            printf("écrivain %d est parti...\n", global_wr);
+        }
         sem_post(&wsem);
         pthread_mutex_lock(&mutex_writecount);
         writecount--;
@@ -67,14 +69,14 @@ void *reader(void *arg) {
             // arrivée du premier reader
             sem_wait(&wsem);
         }
-        printf("lecteur %d est rentré\n",global_rd);
+        if (VERBOSE) printf("lecteur %d est rentré\n",global_rd);
         pthread_mutex_unlock(&mutex_readcount);
         sem_post(&rsem);
         pthread_mutex_unlock(&z);
         //action("reader");
         
         pthread_mutex_lock(&mutex_readcount);
-        printf("lecteur %d est parti\n",global_rd);
+        if (VERBOSE) printf("lecteur %d est parti\n",global_rd);
         // exclusion mutuelle, readcount
         readcount--;
         if (readcount == 0) {
@@ -99,8 +101,8 @@ int main(int argc, char const *argv[]) {
         VERBOSE = TRUE;
     }
 
-    max_readers = atoi(argv[1]);
-    max_writers = atoi(argv[2]);
+    max_readers = atoi(argv[1+VERBOSE]);
+    max_writers = atoi(argv[2+VERBOSE]);
 
     if (max_readers <= 0 || max_writers <= 0) {
         printf("\033[31mERROR: EXPECTED NON-NULL POSITIVE INTEGER ARGUMENTS!\033[0m\n");

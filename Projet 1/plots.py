@@ -40,10 +40,32 @@ plt.grid(True, color="grey", linestyle=":", linewidth=1)
 #plt.xlabel("Nombre de threads")
 plt.ylabel("temps d'execution [s]")
 
+plt.xticks(range(1, 6), 
+           ["2 Threads", "4 Threads", "8 Threads", "16 Threads", "32 Threads"])
+
+for i in range(5):
+    plt.scatter(range(1, 6), essais_prodcons[i])
+
+plt.show()
+
+
+"""PLOT READWRITE"""
+data_readwrite : pd.DataFrame = pd.read_csv("mesures_readwrite.csv")
+essais_readwrite = [data_readwrite[f"Essai{i}"] for i in range(1, 6)]
+
+plt.figure()
+
+plt.title("Temps d'execution du problème du lecteur écrivain")
+
+plt.grid(True, color="grey", linestyle=":", linewidth=1)
+
+#plt.xlabel("Nombre de threads")
+plt.ylabel("temps d'execution [s]")
+
 plt.xticks(range(1, 7), 
            ["2 Threads", "4 Threads", "8 Threads", "16 Threads", "32 Threads", "64 Threads"])
 
 for i in range(5):
-    plt.scatter(range(1, 7), essais_prodcons[i])
+    plt.scatter(range(1, 7), essais_readwrite[i])
 
 plt.show()
