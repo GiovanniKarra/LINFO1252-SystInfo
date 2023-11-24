@@ -27,6 +27,8 @@ plt.xticks(range(1, len(nb_de_threads)+1), nb_de_threads)
 for i in range(5):
     plt.scatter(range(1,  len(nb_de_threads)+1), essais_philo[i])
 
+plt.ylim(ymin=0)
+
 
 """PLOT PRODCONS"""
 data_prodcons : pd.DataFrame = pd.read_csv("mesures_prodcons.csv")
@@ -46,6 +48,8 @@ plt.xticks(range(1, len(nb_de_threads)), nb_de_threads[:-1])
 for i in range(5):
     plt.scatter(range(1, len(nb_de_threads)), essais_prodcons[i])
 
+plt.ylim(ymin=0)
+
 
 """PLOT READWRITE"""
 data_readwrite : pd.DataFrame = pd.read_csv("mesures_readwrite.csv")
@@ -64,5 +68,7 @@ plt.xticks(range(1,  len(nb_de_threads)+1), nb_de_threads)
 
 for i in range(5):
     plt.scatter(range(1,  len(nb_de_threads)+1), essais_readwrite[i])
+
+plt.ylim(ymin=0)
 
 plt.show()

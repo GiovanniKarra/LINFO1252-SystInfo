@@ -7,15 +7,13 @@
 
 #define TRUE 1
 #define FALSE 0
-#define NB_READERS 2560
-#define NB_WRITERS 640
+#define NB_READS 2560
+#define NB_WRITES 640
 
 
 int VERBOSE;
-int total_readers = 0;
-int total_writers = 0;
-int max_readers;
-int max_writers;
+int NB_READERS;
+int NB_WRITERS;
 int global_wr = 0;
 int global_rd = 0;
 
@@ -32,7 +30,7 @@ int current_reader;
 int current_writer;
 
 void *writer(void *arg) {
-    while (global_wr+1 < NB_WRITERS){
+    while (global_wr+1 < NB_WRITES){
         pthread_mutex_lock(&mutex_writecount);
         writecount++;
         if (writecount == 1) {
@@ -42,10 +40,9 @@ void *writer(void *arg) {
         pthread_mutex_unlock(&mutex_writecount);
         sem_wait(&wsem);
         global_wr++;
-        if (VERBOSE) {
-            printf("écrivain %d est rentré\n", global_wr);
-            printf("écrivain %d est parti...\n", global_wr);
-        }
+        if (VERBOSE) printf("écrivain %d est rentré\n", global_wr);
+        for (int i = 0; i < 10000; i++);
+        if (VERBOSE) printf("écrivain %d est parti...\n", global_wr);
         sem_post(&wsem);
         pthread_mutex_lock(&mutex_writecount);
         writecount--;
@@ -58,7 +55,7 @@ void *writer(void *arg) {
 }
 
 void *reader(void *arg) {
-    while (global_rd+1 < NB_READERS){
+    while (global_rd+1 < NB_READS){
         pthread_mutex_lock(&z);
         sem_wait(&rsem);
         pthread_mutex_lock(&mutex_readcount);
@@ -73,7 +70,7 @@ void *reader(void *arg) {
         pthread_mutex_unlock(&mutex_readcount);
         sem_post(&rsem);
         pthread_mutex_unlock(&z);
-        //action("reader");
+        for (int i = 0; i < 10000; i++);
         
         pthread_mutex_lock(&mutex_readcount);
         if (VERBOSE) printf("lecteur %d est parti\n",global_rd);
@@ -101,10 +98,10 @@ int main(int argc, char const *argv[]) {
         VERBOSE = TRUE;
     }
 
-    max_readers = atoi(argv[1+VERBOSE]);
-    max_writers = atoi(argv[2+VERBOSE]);
+    NB_READERS = atoi(argv[1+VERBOSE]);
+    NB_WRITERS = atoi(argv[2+VERBOSE]);
 
-    if (max_readers <= 0 || max_writers <= 0) {
+    if (NB_READERS <= 0 || NB_WRITERS <= 0) {
         printf("\033[31mERROR: EXPECTED NON-NULL POSITIVE INTEGER ARGUMENTS!\033[0m\n");
         return 1;
     }
@@ -113,23 +110,23 @@ int main(int argc, char const *argv[]) {
     sem_init(&wsem, 0, 1);
     sem_init(&rsem, 0, 1);
     
-    pthread_t read[max_readers],write[max_writers];
+    pthread_t read[NB_READERS], write[NB_WRITERS];
     
     pthread_mutex_init(&mutex_readcount, NULL);
     pthread_mutex_init(&mutex_writecount, NULL);
     pthread_mutex_init(&z, NULL);
 
-    for(int i = 0; i < max_writers; i++) {
+    for(int i = 0; i < NB_WRITERS; i++) {
         pthread_create(&read[i], NULL, &reader, NULL);
     }
-    for(int i = 0; i < max_writers; i++) {
+    for(int i = 0; i < NB_WRITERS; i++) {
         pthread_create(&write[i], NULL, &writer, NULL);
     }
 
-    for(int i = 0; i < max_readers; i++) {
+    for(int i = 0; i < NB_READERS; i++) {
         pthread_join(read[i], NULL);
     }   
-    for(int i = 0; i < max_writers; i++) {
+    for(int i = 0; i < NB_WRITERS; i++) {
         pthread_join(write[i], NULL);
     }
 
