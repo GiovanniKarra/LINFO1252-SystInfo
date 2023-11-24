@@ -38,12 +38,12 @@ void *writer(void *arg) {
         if (writecount == 1) {
             if (VERBOSE) printf("le premier écrivain vient d'arriver! Il a le seum parce qu'il attend\n");
             sem_wait(&rsem);
-        }       
+        }
         pthread_mutex_unlock(&mutex_writecount);
         sem_wait(&wsem);
-        global_wr ++;
+        global_wr++;
         if (VERBOSE) {
-            printf("écrivain %d  est rentré\n", global_wr);
+            printf("écrivain %d est rentré\n", global_wr);
             printf("écrivain %d est parti...\n", global_wr);
         }
         sem_post(&wsem);
@@ -64,7 +64,7 @@ void *reader(void *arg) {
         pthread_mutex_lock(&mutex_readcount);
         // exclusion mutuelle, readercount
         readcount++;
-        global_rd ++;
+        global_rd++;
         if (readcount == 1) {
             // arrivée du premier reader
             sem_wait(&wsem);
@@ -119,14 +119,11 @@ int main(int argc, char const *argv[]) {
     pthread_mutex_init(&mutex_writecount, NULL);
     pthread_mutex_init(&z, NULL);
 
-    int rd[max_readers];
-    int wr[max_writers];
-
     for(int i = 0; i < max_writers; i++) {
-        pthread_create(&read[i], NULL, (void *)reader, (void *)&rd[i]);
+        pthread_create(&read[i], NULL, &reader, NULL);
     }
     for(int i = 0; i < max_writers; i++) {
-        pthread_create(&write[i], NULL, (void *)writer, (void *)&wr[i]);
+        pthread_create(&write[i], NULL, &writer, NULL);
     }
 
     for(int i = 0; i < max_readers; i++) {
