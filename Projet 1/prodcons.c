@@ -22,22 +22,27 @@ pthread_mutex_t buffer_mutex;
 sem_t empty;
 sem_t full;
 
-int *prod_count;
-int *cons_count;
+int prod_count;
+int cons_count;
 
 
 void *prod() {
-    while(*prod_count < N_CONSPRODS) {
+    while(TRUE) {
         // PROCESS
         if (VERBOSE) printf("processing...\n");
         for (int i = 0; i < 10000; i++);
 
         sem_wait(&empty);
         pthread_mutex_lock(&buffer_mutex);
+        if (prod_count >= N_CONSPRODS) {
+            pthread_mutex_unlock(&buffer_mutex);
+            sem_post(&full);
+            return NULL;
+        }
         // insert in buffer
         if (VERBOSE) printf("inserting in buffer...\n");
-        buffer[*prod_count%BUFFER_SIZE] = rand()-RAND_MAX/2;
-        (*prod_count)++;
+        buffer[prod_count%BUFFER_SIZE] = rand()-RAND_MAX/2;
+        (prod_count)++;
         pthread_mutex_unlock(&buffer_mutex);
         sem_post(&full);
     }
@@ -46,13 +51,18 @@ void *prod() {
 }
 
 void *cons() {
-    while(*cons_count < N_CONSPRODS) {
+    while(TRUE) {
         sem_wait(&full);
         pthread_mutex_lock(&buffer_mutex);
+        if (cons_count >= N_CONSPRODS) {
+            pthread_mutex_unlock(&buffer_mutex);
+            sem_post(&empty);
+            return NULL;
+        }
         // take from buffer
         if (VERBOSE) printf("reading from buffer...\n");
-        int var = buffer[*cons_count%BUFFER_SIZE];
-        (*cons_count)++;
+        int var = buffer[cons_count%BUFFER_SIZE];
+        (cons_count)++;
         pthread_mutex_unlock(&buffer_mutex);
         sem_post(&empty);
 
@@ -92,10 +102,6 @@ int main(int argc, char const *argv[]) {
     err += sem_init(&full, 0, 0);
     if (err != 0) return 1;
 
-    cons_count = (int*)malloc(sizeof(int));
-    prod_count = (int*)malloc(sizeof(int));
-    if (cons_count == NULL || prod_count == NULL) return 1;
-
     pthread_t threads[CONS+PROD];
     
     // START THREADS
@@ -118,10 +124,6 @@ int main(int argc, char const *argv[]) {
     err += sem_destroy(&empty);
     err += sem_destroy(&full);
     if (err != 0) return 1;
-
-    // FREE RESSOURCES
-    free(cons_count);
-    free(prod_count);
 
     return 0;
 }

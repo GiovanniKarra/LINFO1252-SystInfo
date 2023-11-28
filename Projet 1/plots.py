@@ -43,10 +43,10 @@ plt.grid(True, color="grey", linestyle=":", linewidth=1)
 #plt.xlabel("Nombre de threads")
 plt.ylabel("temps d'execution [s]")
 
-plt.xticks(range(1, len(nb_de_threads)), nb_de_threads[:-1])
+plt.xticks(range(1, len(nb_de_threads)+1), nb_de_threads)
 
 for i in range(5):
-    plt.scatter(range(1, len(nb_de_threads)), essais_prodcons[i])
+    plt.scatter(range(1, len(nb_de_threads)+1), essais_prodcons[i])
 
 plt.ylim(ymin=0)
 
