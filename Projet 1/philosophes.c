@@ -5,7 +5,7 @@
 
 #define TRUE 1
 #define FALSE 0
-#define N_CYCLES 10
+#define N_CYCLES 10000000
 
 
 int PHILOSOPHES;

@@ -35,7 +35,6 @@ plt.ylim(ymin=0)
 data_prodcons : pd.DataFrame = pd.read_csv("mesures_prodcons.csv")
 essais_prodcons = [data_prodcons[f"Essai{i}"] for i in range(1, 6)]
 moyenne_par_thread_prodcons = data_prodcons.transpose().drop("NombreDeThreads").mean()
-print(moyenne_par_thread_prodcons)
 
 plt.subplot(312)
 
