@@ -11,7 +11,7 @@ plt.subplots_adjust(hspace=0.5)
 """PLOT PHILO"""
 data_philo : pd.DataFrame = pd.read_csv("mesures_philo.csv")
 essais_philo = [data_philo[f"Essai{i}"] for i in range(1, 6)]
-#moyenne_par_thread = essais.transpose().mean()
+moyenne_par_thread = data_philo.transpose().drop("NombreDeThreads").mean()
 
 plt.subplot(311)
 
@@ -24,8 +24,9 @@ plt.ylabel("temps d'execution [s]")
 
 plt.xticks(range(1, len(nb_de_threads)+1), nb_de_threads)
 
-for i in range(5):
-    plt.scatter(range(1,  len(nb_de_threads)+1), essais_philo[i])
+# for i in range(5):
+#     plt.scatter(range(1,  len(nb_de_threads)+1), essais_philo[i])
+plt.plot(range(1, len(nb_de_threads)+1), moyenne_par_thread)
 
 plt.ylim(ymin=0)
 
@@ -33,6 +34,8 @@ plt.ylim(ymin=0)
 """PLOT PRODCONS"""
 data_prodcons : pd.DataFrame = pd.read_csv("mesures_prodcons.csv")
 essais_prodcons = [data_prodcons[f"Essai{i}"] for i in range(1, 6)]
+moyenne_par_thread_prodcons = data_prodcons.transpose().drop("NombreDeThreads").mean()
+print(moyenne_par_thread_prodcons)
 
 plt.subplot(312)
 
@@ -45,8 +48,9 @@ plt.ylabel("temps d'execution [s]")
 
 plt.xticks(range(1, len(nb_de_threads)+1), nb_de_threads)
 
-for i in range(5):
-    plt.scatter(range(1, len(nb_de_threads)+1), essais_prodcons[i])
+# for i in range(5):
+    # plt.scatter(range(1, len(nb_de_threads)+1), essais_prodcons[i])
+plt.plot(range(1, len(nb_de_threads)+1), moyenne_par_thread_prodcons)
 
 plt.ylim(ymin=0)
 
@@ -54,6 +58,7 @@ plt.ylim(ymin=0)
 """PLOT READWRITE"""
 data_readwrite : pd.DataFrame = pd.read_csv("mesures_readwrite.csv")
 essais_readwrite = [data_readwrite[f"Essai{i}"] for i in range(1, 6)]
+moyenne_par_thread_readwrite = data_readwrite.transpose().drop("NombreDeThreads").mean()
 
 plt.subplot(313)
 
@@ -66,8 +71,9 @@ plt.ylabel("temps d'execution [s]")
 
 plt.xticks(range(1,  len(nb_de_threads)+1), nb_de_threads)
 
-for i in range(5):
-    plt.scatter(range(1,  len(nb_de_threads)+1), essais_readwrite[i])
+# for i in range(5):
+#     plt.scatter(range(1,  len(nb_de_threads)+1), essais_readwrite[i])
+plt.plot(range(1, len(nb_de_threads)+1), moyenne_par_thread_readwrite)
 
 plt.ylim(ymin=0)
 
