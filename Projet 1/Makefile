@@ -1,6 +1,6 @@
 GCC	= gcc
 CFLAGS = -Wall -std=c99 -g -lpthread
-RM = philosophes prodcons reader_writer test_and_set *.o
+RM = philosophes prodcons reader_writer test_and_set test_and_test_and_set *.o
 
 all: philosophes prodcons reader_writer test_and_set
 
@@ -15,6 +15,9 @@ reader_writer: reader_writer.c
 
 test_and_set: testandset.c spinlock.c
 	@$(GCC) -o test_and_set testandset.c spinlock.c $(CFLAGS)
+
+test_and_test_and_set: testandset.c spinlock.c
+	@$(GCC) -o test_and_test_and_set testandset.c spinlock.c $(CFLAGS) -D METH2
 
 clean:
 	@rm -f $(RM)
