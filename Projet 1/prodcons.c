@@ -4,6 +4,10 @@
 #include <semaphore.h>
 #include <string.h>
 
+#ifdef MY_MUTEX
+#include "intercept.h"
+#endif
+
 #define RAND_MAX 2147483647*2
 
 #define TRUE 1

@@ -54,7 +54,7 @@ int main(int argc, char const *argv[]) {
     // END ARGUMENT PARSING
 
     // verrou = (my_mutex_t*)malloc(sizeof(my_mutex_t));
-    my_mutex_init(&verrou);
+    my_mutex_init(&verrou, NULL);
     pthread_t threads[N];
     // pthread_t testingthread;
     // pthread_create(&testingthread, NULL, &testing, NULL);
@@ -70,7 +70,7 @@ int main(int argc, char const *argv[]) {
         if (err != 0) return 1;
     }
     
-    // my_mutex_destroy(&verrou);
+    my_mutex_destroy(&verrou);
 
     return 0;
 }

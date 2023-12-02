@@ -3,6 +3,10 @@
 #include <pthread.h>
 #include <string.h>
 
+#ifdef MY_MUTEX
+#include "intercept.h"
+#endif
+
 #define TRUE 1
 #define FALSE 0
 #define N_CYCLES 10000000

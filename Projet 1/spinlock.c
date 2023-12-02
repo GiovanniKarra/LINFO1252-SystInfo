@@ -24,12 +24,36 @@ void unlock(my_mutex_t *mutex) {
     test_and_set(&(mutex->lock), 0);
 }
 
-void my_mutex_init(my_mutex_t *mutex) {
+int my_mutex_init(my_mutex_t *mutex, void *attr) {
     mutex->lock = 0;
+    return 0;
 }
 
-void my_mutex_destroy(my_mutex_t *mutex) {
-    free(mutex);
+int my_mutex_destroy(my_mutex_t *mutex) {
+    // DESTROY
+    return 0;
+}
+
+void my_wait(my_sem_t *sem) {
+    if (sem->val <= 1) lock(&(sem->mutex));
+    sem->val--;
+    if (sem->val > 0 && sem->mutex.lock) unlock(&(sem->mutex));
+}
+
+void my_post(my_sem_t *sem) {
+    sem->val++;
+    if (sem->val > 0 && sem->mutex.lock) unlock(&(sem->mutex));
+}
+
+int my_sem_init(my_sem_t *sem, int pshared, int value) {
+    my_mutex_init(&(sem->mutex), NULL);
+    sem->val = value;
+    return 0;
+}
+
+int my_sem_destroy(my_sem_t *sem) {
+    my_mutex_destroy(&(sem->mutex));
+    return 0;
 }
 
 // int main(int argc, char const *argv[]) {
