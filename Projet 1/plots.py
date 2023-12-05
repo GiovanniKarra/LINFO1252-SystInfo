@@ -4,10 +4,13 @@ import pandas as pd
 nb_de_threads =\
     ["2 Threads", "4 Threads", "8 Threads", "16 Threads", "32 Threads", "64 Threads"]
 
-def perfplot(filename : str, title : str, position : int):
+def perfplot(filename : str, title : str, position : int, filename2 : str):
     data : pd.DataFrame = pd.read_csv(filename)
-    essais = [data[f"Essai{i}"] for i in range(1, 6)]
+    #essais = [data[f"Essai{i}"] for i in range(1, 6)]
     moyenne = data.transpose().drop("NombreDeThreads").mean()
+
+    data2 : pd.DataFrame = pd.read_csv(filename2)
+    moyenne2 = data2.transpose().drop("NombreDeThreads").mean()
 
     plt.subplot(position)
 
@@ -23,6 +26,7 @@ def perfplot(filename : str, title : str, position : int):
     # for i in range(5):
     #     plt.scatter(range(1,  len(nb_de_threads)+1), essais[i])
     plt.plot(range(1, len(nb_de_threads)+1), moyenne)
+    plt.plot(range(1, len(nb_de_threads)+1), moyenne2)
 
     plt.ylim(ymin=0)
 
@@ -32,19 +36,22 @@ plt.subplots_adjust(hspace=0.5)
 
 
 """PLOT PHILO"""
-perfplot("mesures_philo.csv", "Temps d'execution du problème des philosophes", 221)
+perfplot("mesures_philo.csv", "Temps d'execution du problème des philosophes", 221,
+         "mesures_philo_active.csv")
 
 
 """PLOT PRODCONS"""
 perfplot("mesures_prodcons.csv", "Temps d'execution du problème des producteurs"\
-         " consommateurs", 222)
+         " consommateurs", 222, "mesures_prodcons_active.csv")
 
 
 """PLOT READWRITE"""
-perfplot("mesures_readwrite.csv", "Temps d'execution du problème des lecteurs écrivains", 223)
+perfplot("mesures_readwrite.csv", "Temps d'execution du problème des lecteurs écrivains", 223,
+         "mesures_readwrite_active.csv")
 
 
 """PLOT SPINLOCK"""
-perfplot("mesures_spinlock.csv", "Temps d'execution avec attente active test-and-set", 224)
+perfplot("mesures_spinlock.csv", "Temps d'execution avec attente active test-and-set", 224,
+         "mesures_spinlock2.csv")
 
 plt.show()

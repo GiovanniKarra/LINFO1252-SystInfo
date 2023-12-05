@@ -1,6 +1,6 @@
 GCC	= gcc
 CFLAGS = -Wall -std=c99 -g -lpthread
-RM = philosophes prodcons reader_writer test_and_set test_and_test_and_set *.o
+RM = philo philo_active prodcons prodcons_active reader_writer reader_writer_active test_and_set test_and_test_and_set *.o
 
 all: philosophes prodcons reader_writer test_and_set
 
