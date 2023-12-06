@@ -15,7 +15,7 @@ mesure_perf() {
     for i in $(seq 1 $NB_MESURES); do
         TITRE="$TITRE,Essai$i"
     done
-    echo $TITRE > $1
+    echo $TITRE
 
     make clean
     make $2
@@ -34,13 +34,13 @@ mesure_perf() {
                 LIGNE="$LIGNE,$INFO"
             fi
         done
-        echo $LIGNE >> $1
+        echo $LIGNE
     done
 }
 
 
 # PHILO
-# mesure_perf $FICHIER_MESURES_PHILO philo 1
+mesure_perf $FICHIER_MESURES_PHILO philo 1
 # mesure_perf $FICHIER_MESURES_PHILO_ACTIVE philo_active 1
 
 # CONSPROD
