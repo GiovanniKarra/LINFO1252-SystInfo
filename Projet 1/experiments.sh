@@ -17,7 +17,6 @@ mesure_perf() {
     done
     echo $TITRE
 
-    make clean
     make $2
 
     for i in 2 4 8 16 32 64

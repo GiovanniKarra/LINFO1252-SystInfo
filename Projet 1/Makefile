@@ -2,7 +2,7 @@ GCC	= gcc
 CFLAGS = -Wall -std=c99 -g -lpthread
 RM = philo philo_active prodcons prodcons_active reader_writer reader_writer_active test_and_set test_and_test_and_set *.o
 
-all: philo prodcons reader_writer test_and_set
+all: philo prodcons reader_writer test_and_set test_and_test_and_set philo_active prodcons_active reader_writer_active
 
 philo: philosophes.c
 	@$(GCC) -o philo philosophes.c $(CFLAGS)
@@ -29,7 +29,7 @@ reader_writer_active: reader_writer.c spinlock.c
 	@$(GCC) -o reader_writer_active reader_writer.c spinlock.c $(CFLAGS) -D METH2 -D MY_MUTEX
 
 archive:
-	@zip -u archive.zip experiments.sh intercept.h intercept.c Makefile philosophes.c reader_writer.c spinlock.c testandset.c prodcons.c
+	@zip -u archive.zip experiments.sh intercept.h Makefile philosophes.c reader_writer.c spinlock.c spinlock.h testandset.c prodcons.c
 
 clean:
 	@rm -f $(RM)
