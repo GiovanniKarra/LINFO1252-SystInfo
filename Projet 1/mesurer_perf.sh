@@ -45,7 +45,7 @@ mesure_perf() {
 
 # CONSPROD
 # mesure_perf $FICHIER_MESURES_PRODCONS prodcons 2
-# mesure_perf $FICHIER_MESURES_PRODCONS_ACTIVE prodcons_active 2
+mesure_perf $FICHIER_MESURES_PRODCONS_ACTIVE prodcons_active 2
 
 # READWRITE
 # mesure_perf $FICHIER_MESURES_READWRITE reader_writer 2
@@ -55,4 +55,4 @@ mesure_perf() {
 # mesure_perf $FICHIER_MESURES_SPINLOCK test_and_set 1
 
 # TEST AND TEST AND SET
-mesure_perf $FICHIER_MESURES_SPINLOCK2 test_and_test_and_set 1
+# mesure_perf $FICHIER_MESURES_SPINLOCK2 test_and_test_and_set 1

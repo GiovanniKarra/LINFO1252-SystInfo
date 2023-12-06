@@ -13,11 +13,13 @@ int test_and_set(int *verrou, int value) {
 }
 
 void lock(my_mutex_t *mutex) {
+    //printf("lock\n");
     while (test_and_set(&(mutex->lock), 1)) {
         #ifdef METH2
         while (mutex->lock);
         #endif
     }
+    //printf("enter\n");
 }
 
 void unlock(my_mutex_t *mutex) {
@@ -35,14 +37,22 @@ int my_mutex_destroy(my_mutex_t *mutex) {
 }
 
 void my_wait(my_sem_t *sem) {
-    if (sem->val <= 1) lock(&(sem->mutex));
-    sem->val--;
-    if (sem->val > 0 && sem->mutex.lock) unlock(&(sem->mutex));
+    while (1) {
+        while(sem->val <= 0);
+        lock(&(sem->mutex));
+        if (sem->val > 0) {
+            sem->val--;
+            unlock(&(sem->mutex));
+            break;
+        }
+        unlock(&(sem->mutex));
+    }
 }
 
 void my_post(my_sem_t *sem) {
+    lock(&(sem->mutex));
     sem->val++;
-    if (sem->val > 0 && sem->mutex.lock) unlock(&(sem->mutex));
+    unlock(&(sem->mutex));
 }
 
 int my_sem_init(my_sem_t *sem, int pshared, int value) {

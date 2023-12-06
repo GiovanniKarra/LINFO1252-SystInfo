@@ -49,7 +49,7 @@ int main(int argc, char const *argv[]) {
     VERBOSE = FALSE;
     if (argc != 2) {
         if (argc < 2 || strcmp(argv[1], "-v") != 0) {
-            printf("\033[31mERROR : EXPECTED 1 ARGUMENT, BUT GOT %d !\033[0m\n", argc-1);
+            printf("\033[31;1mERROR : EXPECTED 1 ARGUMENT, BUT GOT %d !\033[0m\n", argc-1);
             return 1;
         }
         VERBOSE = TRUE;
@@ -57,7 +57,7 @@ int main(int argc, char const *argv[]) {
 
     PHILOSOPHES = atoi(argv[1 + VERBOSE]);
     if (PHILOSOPHES == 0) {
-        printf("\033[31mERROR : EXPECTED A NON-NULL INTEGER ARGUMENT !\033[0m\n");
+        printf("\033[31;1mERROR : EXPECTED A NON-NULL INTEGER ARGUMENT !\033[0m\n");
         return 1;
     }
     // END ARGUMENT PARSING
