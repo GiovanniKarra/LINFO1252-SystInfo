@@ -1,6 +1,6 @@
 GCC	= gcc
 CFLAGS = -Wall -std=c99 -g -lpthread
-RM = philo philo_active prodcons prodcons_active reader_writer reader_writer_active test_and_set test_and_test_and_set *.o
+RM = philo philo_active prodcons prodcons_active reader_writer reader_writer_active test_and_set test_and_test_and_set backoff *.o
 
 all: philo prodcons reader_writer test_and_set test_and_test_and_set philo_active prodcons_active reader_writer_active
 
@@ -30,6 +30,9 @@ reader_writer_active: reader_writer.c spinlock.c
 
 archive:
 	@zip -u archive.zip experiments.sh intercept.h Makefile philosophes.c reader_writer.c spinlock.c spinlock.h testandset.c prodcons.c
+
+backoff: testandset.c spinlock.c
+	@$(GCC) -o backoff testandset.c spinlock.c $(CFLAGS) -D BACKOFF
 
 clean:
 	@rm -f $(RM)

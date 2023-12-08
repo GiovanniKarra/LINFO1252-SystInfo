@@ -9,6 +9,7 @@ FICHIER_MESURES_READWRITE="mesures_readwrite.csv"
 FICHIER_MESURES_READWRITE_ACTIVE="mesures_readwrite_active.csv"
 FICHIER_MESURES_SPINLOCK="mesures_spinlock.csv"
 FICHIER_MESURES_SPINLOCK2="mesures_spinlock2.csv"
+FICHIER_MESURES_BACKOFF="mesures_backoff.csv"
 
 mesure_perf() {
     TITRE="NombreDeThreads"
@@ -56,3 +57,6 @@ mesure_perf() {
 
 # TEST AND TEST AND SET
 # mesure_perf $FICHIER_MESURES_SPINLOCK2 test_and_test_and_set 1
+
+# BACKOFF
+mesure_perf $FICHIER_MESURES_BACKOFF backoff 1

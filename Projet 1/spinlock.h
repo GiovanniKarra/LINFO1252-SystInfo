@@ -1,6 +1,11 @@
 #ifndef SPINLOCK_H_
 #define SPINLOCK_H_
 
+#ifdef BACKOFF
+#define MINWAIT 1000
+#define MAXWAIT 100000000
+#endif
+
 typedef struct mutex {
     int lock;
 } my_mutex_t;

@@ -18,6 +18,13 @@ void lock(my_mutex_t *mutex) {
         #ifdef METH2
         while (mutex->lock);
         #endif
+
+        #ifdef BACKOFF
+        static int wait_count = 0;
+        int wait_time = MINWAIT + rand()*(wait_count/1000);
+        if (wait_time > MAXWAIT) wait_time = MAXWAIT;
+        for (int i = 0; i < wait_time; i++);
+        #endif
     }
     //printf("enter\n");
 }
