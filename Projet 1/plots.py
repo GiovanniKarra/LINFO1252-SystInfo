@@ -6,15 +6,15 @@ nb_de_threads =\
     ["2 Threads", "4 Threads", "8 Threads", "16 Threads", "32 Threads", "64 Threads"]
 
 def perfplot(filename : str, title : str, filename2 : str, filename3 : str = None):
-    data : pd.DataFrame = pd.read_csv(filename)
+    data : pd.DataFrame = pd.read_csv("mesures/"+filename)
     #essais = [data[f"Essai{i}"] for i in range(1, 6)]
     moyenne = data.transpose().drop("NombreDeThreads").mean()
 
-    data2 : pd.DataFrame = pd.read_csv(filename2)
+    data2 : pd.DataFrame = pd.read_csv("mesures/"+filename2)
     moyenne2 = data2.transpose().drop("NombreDeThreads").mean()
 
     if filename3 is not None:
-        data3 : pd.DataFrame = pd.read_csv(filename3)
+        data3 : pd.DataFrame = pd.read_csv("mesures/"+filename3)
         moyenne3 = data3.transpose().drop("NombreDeThreads").mean()
 
     plt.figure(figsize=(15, 7))

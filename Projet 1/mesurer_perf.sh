@@ -16,7 +16,7 @@ mesure_perf() {
     for i in $(seq 1 $NB_MESURES); do
         TITRE="$TITRE,Essai$i"
     done
-    echo $TITRE > $1
+    echo $TITRE > mesures/$1
 
     make clean
     make $2
@@ -35,7 +35,7 @@ mesure_perf() {
                 LIGNE="$LIGNE,$INFO"
             fi
         done
-        echo $LIGNE >> $1
+        echo $LIGNE >> mesures/$1
     done
 }
 
