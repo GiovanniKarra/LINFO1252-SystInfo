@@ -30,6 +30,8 @@ def perfplot(filename : str, title : str, position : int, filename2 : str):
 
     plt.ylim(ymin=0)
 
+    plt.savefig(f"plots/{hash(filename)}")
+
 
 plt.figure(figsize=(15, 7))
 plt.subplots_adjust(hspace=0.5)

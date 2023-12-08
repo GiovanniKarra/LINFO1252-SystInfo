@@ -106,7 +106,7 @@ int main(int argc, char const *argv[]) {
     NB_WRITERS = atoi(argv[2+VERBOSE]);
 
     if (NB_READERS <= 0 || NB_WRITERS <= 0) {
-        printf("\033[31mERROR: EXPECTED NON-NULL POSITIVE INTEGER ARGUMENTS!\033[0m\n");
+        printf("\033[31;1mERROR: EXPECTED NON-NULL POSITIVE INTEGER ARGUMENTS!\033[0m\n");
         return 1;
     }
     // END ARGUMENT PARSING
