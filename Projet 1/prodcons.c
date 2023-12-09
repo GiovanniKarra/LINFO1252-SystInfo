@@ -3,6 +3,7 @@
 #include <pthread.h>
 #include <semaphore.h>
 #include <string.h>
+#include <stdbool.h>
 
 #ifdef MY_MUTEX
 #include "intercept.h"
@@ -10,8 +11,6 @@
 
 #define RAND_MAX 2147483647*2
 
-#define TRUE 1
-#define FALSE 0
 #define N_CONSPRODS 8192
 #define BUFFER_SIZE 8
 
@@ -31,7 +30,7 @@ int cons_count;
 
 
 void *prod() {
-    while(TRUE) {
+    while(true) {
         // PROCESS
         if (VERBOSE) printf("processing...\n");
         for (int i = 0; i < 10000; i++);
@@ -55,7 +54,7 @@ void *prod() {
 }
 
 void *cons() {
-    while(TRUE) {
+    while(true) {
         sem_wait(&full);
         pthread_mutex_lock(&buffer_mutex);
         if (cons_count >= N_CONSPRODS) {
@@ -81,13 +80,13 @@ void *cons() {
 
 int main(int argc, char const *argv[]) {
     // ARGUMENT PARSING
-    VERBOSE = FALSE;
+    VERBOSE = false;
     if (argc != 3) {
         if (argc < 3 || strcmp(argv[1], "-v") != 0) {
             printf("\033[31mERROR : EXPECTED 2 ARGUMENTS, BUT GOT %d !\033[0m\n", argc-1);
             return 1;
         }
-        VERBOSE = TRUE;
+        VERBOSE = true;
     }
 
     PROD = atoi(argv[1 + VERBOSE]);

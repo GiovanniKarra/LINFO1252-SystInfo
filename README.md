@@ -1,4 +1,4 @@
-char \*\*authors = (char**)malloc(2*size(grosbg));
+char \*\*authors = (char*\*)malloc(2*sizeof(grosbg));
 
 *(authors) = "Pierre Leboutte";
 

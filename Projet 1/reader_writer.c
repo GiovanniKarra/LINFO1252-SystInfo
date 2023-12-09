@@ -4,13 +4,12 @@
 #include <semaphore.h>
 #include <string.h>
 #include <unistd.h>
+#include <stdbool.h>
 
 #ifdef MY_MUTEX
 #include "intercept.h"
 #endif
 
-#define TRUE 1
-#define FALSE 0
 #define NB_READS 2560
 #define NB_WRITES 640
 
@@ -93,13 +92,13 @@ void *reader(void *arg) {
 int main(int argc, char const *argv[]) {
 
     // ARGUMENT PARSING
-    VERBOSE = FALSE;
+    VERBOSE = false;
     if (argc != 3) {
         if (argc < 3 || strcmp(argv[1], "-v") != 0) {
             printf("\033[31mERROR : EXPECTED 2 ARGUMENTS, BUT GOT %d !\033[0m\n", argc-1);
             return 1;
         }
-        VERBOSE = TRUE;
+        VERBOSE = true;
     }
 
     NB_READERS = atoi(argv[1+VERBOSE]);

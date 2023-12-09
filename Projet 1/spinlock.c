@@ -14,18 +14,24 @@ int test_and_set(int *verrou, int value) {
 
 void lock(my_mutex_t *mutex) {
     //printf("lock\n");
+    #ifdef BACKOFF
+    static int wait_count = 0;
+    #endif
     while (test_and_set(&(mutex->lock), 1)) {
         #ifdef METH2
         while (mutex->lock);
         #endif
 
         #ifdef BACKOFF
-        static int wait_count = 0;
         int wait_time = MINWAIT + rand()*(wait_count/1000);
         if (wait_time > MAXWAIT) wait_time = MAXWAIT;
         for (int i = 0; i < wait_time; i++);
+        wait_count++;
         #endif
     }
+    #ifdef BACKOFF
+    wait_count = 0;
+    #endif
     //printf("enter\n");
 }
 

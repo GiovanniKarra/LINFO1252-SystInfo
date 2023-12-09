@@ -32,7 +32,7 @@ mesure_perf() {
 
 # PHILO
 # mesure_perf philo 1
-# mesure_perf philo_active 1
+mesure_perf philo_active 1
 
 # CONSPROD
 # mesure_perf prodcons 2
@@ -47,3 +47,6 @@ mesure_perf() {
 
 # TEST AND TEST AND SET
 # mesure_perf test_and_test_and_set 1
+
+# BACKOFF TEST AND TEST AND SET
+mesure_perf backoff 1

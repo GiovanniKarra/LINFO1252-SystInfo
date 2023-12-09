@@ -2,13 +2,12 @@
 #include <stdlib.h>
 #include <pthread.h>
 #include <string.h>
+#include <stdbool.h>
 
 #ifdef MY_MUTEX
 #include "intercept.h"
 #endif
 
-#define TRUE 1
-#define FALSE 0
 #define N_CYCLES 1000000
 
 
@@ -46,13 +45,13 @@ void* philosophe(void* arg) {
 
 int main(int argc, char const *argv[]) {
     // ARGUMENT PARSING
-    VERBOSE = FALSE;
+    VERBOSE = false;
     if (argc != 2) {
         if (argc < 2 || strcmp(argv[1], "-v") != 0) {
             printf("\033[31;1mERROR : EXPECTED 1 ARGUMENT, BUT GOT %d !\033[0m\n", argc-1);
             return 1;
         }
-        VERBOSE = TRUE;
+        VERBOSE = true;
     }
 
     PHILOSOPHES = atoi(argv[1 + VERBOSE]);
