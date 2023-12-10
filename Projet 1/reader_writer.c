@@ -6,6 +6,8 @@
 #include <unistd.h>
 #include <stdbool.h>
 
+// Le paramètre MY_MUTEX indique qu'il faut utiliser les primitives de synchronisation
+// par attente active au lieu de celles de POSIX
 #ifdef MY_MUTEX
 #include "intercept.h"
 #endif

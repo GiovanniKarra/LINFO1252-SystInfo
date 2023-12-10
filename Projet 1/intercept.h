@@ -1,6 +1,10 @@
 #ifndef INTERCEPT_H_
 #define INTERCEPT_H_
 
+// Ce fichier est inclu lorsqu'il faut utiliser les primitives de synchronisation
+// par attente active au lieu de celles de POSIX, dans quel cas nous changeons les
+// définitions des fonctions pour appeler les nôtres à la place
+
 #include <pthread.h>
 #include <semaphore.h>
 #include "spinlock.h"

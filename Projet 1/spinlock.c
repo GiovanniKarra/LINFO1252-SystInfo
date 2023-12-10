@@ -19,10 +19,12 @@ void lock(my_mutex_t *mutex) {
     static int wait_count = 0;
     #endif
     while (test_and_set(&(mutex->lock), 1)) {
+        // test and test and set
         #ifdef METH2
         while (mutex->lock);
         #endif
 
+        // backoff test and test and set
         #ifdef BACKOFF
         int wait_time = MINWAIT + rand()*(wait_count/1000);
         if (wait_time > MAXWAIT) wait_time = MAXWAIT;
@@ -78,14 +80,3 @@ int my_sem_destroy(my_sem_t *sem) {
     my_mutex_destroy(&(sem->mutex));
     return 0;
 }
-
-// int main(int argc, char const *argv[]) {
-//     my_mutex_t verrou;
-//     my_mutex_init(&verrou);
-//     printf("%d\n", verrou.lock);
-//     lock(&verrou);
-//     printf("%d\n", verrou.lock);
-//     unlock(&verrou);
-//     printf("%d\n", verrou.lock);
-//     return 0;
-// }

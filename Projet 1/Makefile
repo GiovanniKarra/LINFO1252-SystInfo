@@ -1,6 +1,6 @@
 GCC	= gcc
 CFLAGS = -Wall -std=c99 -g -lpthread
-RM = philo philo_active prodcons prodcons_active reader_writer reader_writer_active test_and_set test_and_test_and_set backoff *.o
+RM = archive.zip philo philo_active prodcons prodcons_active reader_writer reader_writer_active test_and_set test_and_test_and_set backoff *.o
 
 all: philo prodcons reader_writer test_and_set test_and_test_and_set backoff philo_active prodcons_active reader_writer_active
 
@@ -36,6 +36,9 @@ backoff: testandset.c spinlock.c
 
 test: mesurer_perf.sh
 	@sh mesurer_perf.sh
+
+plot: plots.py
+	@python3 plots.py
 
 clean:
 	@rm -f $(RM)

@@ -4,6 +4,8 @@
 #include <string.h>
 #include <stdbool.h>
 
+// Le paramètre MY_MUTEX indique qu'il faut utiliser les primitives de synchronisation
+// par attente active au lieu de celles de POSIX
 #ifdef MY_MUTEX
 #include "intercept.h"
 #endif
@@ -16,14 +18,14 @@ int VERBOSE;
 pthread_mutex_t *baguette;
 
 
+// action de manger
 void mange(int id) {
-    if (VERBOSE)
-        printf("Philosophe %d mange\n", id);
+    if (VERBOSE) printf("Philosophe %d mange\n", id);
 }
 
 
 void* philosophe(void* arg) {
-    int *id = (int*)arg;
+    int *id = (int*)arg; // identificateur du thread
     int left = *id;
     int right = (left + 1) % PHILOSOPHES;
     for (int i = 0; i < N_CYCLES; i++) {

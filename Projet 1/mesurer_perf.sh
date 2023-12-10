@@ -11,6 +11,8 @@ FICHIER_MESURES_SPINLOCK="mesures_spinlock.csv"
 FICHIER_MESURES_SPINLOCK2="mesures_spinlock2.csv"
 FICHIER_MESURES_BACKOFF="mesures_backoff.csv"
 
+# Fonction qui mesure la performance d'un des problèmes, et qui stock me résultat dans
+# un fichier csv
 mesure_perf() {
     TITRE="NombreDeThreads"
     for i in $(seq 1 $NB_MESURES); do
@@ -41,22 +43,22 @@ mesure_perf() {
 
 
 # PHILO
-# mesure_perf $FICHIER_MESURES_PHILO philo 1
-# mesure_perf $FICHIER_MESURES_PHILO_ACTIVE philo_active 1
+mesure_perf $FICHIER_MESURES_PHILO philo 1
+mesure_perf $FICHIER_MESURES_PHILO_ACTIVE philo_active 1
 
 # CONSPROD
-# mesure_perf $FICHIER_MESURES_PRODCONS prodcons 2
-# mesure_perf $FICHIER_MESURES_PRODCONS_ACTIVE prodcons_active 2
+mesure_perf $FICHIER_MESURES_PRODCONS prodcons 2
+mesure_perf $FICHIER_MESURES_PRODCONS_ACTIVE prodcons_active 2
 
 # READWRITE
-# mesure_perf $FICHIER_MESURES_READWRITE reader_writer 2
-# mesure_perf $FICHIER_MESURES_READWRITE_ACTIVE reader_writer_active 2
+mesure_perf $FICHIER_MESURES_READWRITE reader_writer 2
+mesure_perf $FICHIER_MESURES_READWRITE_ACTIVE reader_writer_active 2
 
 # TEST AND SET
-# mesure_perf $FICHIER_MESURES_SPINLOCK test_and_set 1
+mesure_perf $FICHIER_MESURES_SPINLOCK test_and_set 1
 
 # TEST AND TEST AND SET
-# mesure_perf $FICHIER_MESURES_SPINLOCK2 test_and_test_and_set 1
+mesure_perf $FICHIER_MESURES_SPINLOCK2 test_and_test_and_set 1
 
 # BACKOFF
-# mesure_perf $FICHIER_MESURES_BACKOFF backoff 1
+mesure_perf $FICHIER_MESURES_BACKOFF backoff 1
