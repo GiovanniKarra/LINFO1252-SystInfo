@@ -59,4 +59,4 @@ mesure_perf() {
 # mesure_perf $FICHIER_MESURES_SPINLOCK2 test_and_test_and_set 1
 
 # BACKOFF
-mesure_perf $FICHIER_MESURES_BACKOFF backoff 1
+# mesure_perf $FICHIER_MESURES_BACKOFF backoff 1

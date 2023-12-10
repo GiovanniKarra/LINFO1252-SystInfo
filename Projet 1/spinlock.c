@@ -1,5 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdbool.h>
+
 #include "spinlock.h"
 
 
@@ -13,7 +15,6 @@ int test_and_set(int *verrou, int value) {
 }
 
 void lock(my_mutex_t *mutex) {
-    //printf("lock\n");
     #ifdef BACKOFF
     static int wait_count = 0;
     #endif
@@ -32,7 +33,6 @@ void lock(my_mutex_t *mutex) {
     #ifdef BACKOFF
     wait_count = 0;
     #endif
-    //printf("enter\n");
 }
 
 void unlock(my_mutex_t *mutex) {
@@ -50,7 +50,7 @@ int my_mutex_destroy(my_mutex_t *mutex) {
 }
 
 void my_wait(my_sem_t *sem) {
-    while (1) {
+    while (true) {
         while(sem->val <= 0);
         lock(&(sem->mutex));
         if (sem->val > 0) {

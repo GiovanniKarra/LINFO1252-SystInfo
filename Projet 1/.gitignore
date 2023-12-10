@@ -1,5 +1,5 @@
 archive.zip
-plots/*.png
+plots/*
 philo
 philo_active
 prodcons

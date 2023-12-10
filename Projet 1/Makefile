@@ -34,5 +34,8 @@ archive:
 backoff: testandset.c spinlock.c
 	@$(GCC) -o backoff testandset.c spinlock.c $(CFLAGS) -D BACKOFF
 
+test: mesurer_perf.sh
+	@sh mesurer_perf.sh
+
 clean:
 	@rm -f $(RM)
