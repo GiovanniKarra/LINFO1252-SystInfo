@@ -1,3 +1,7 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
 #include "lib_tar.h"
 
 /**
@@ -16,6 +20,26 @@
  *         -3 if the archive contains a header with an invalid checksum value
  */
 int check_archive(int tar_fd) {
+    tar_header_t *header = (tar_header_t*)malloc(sizeof(tar_header_t));
+    if (header == NULL) fprintf(stderr, "malloc error\n");
+
+    read(tar_fd, header, sizeof(tar_header_t));
+
+    printf("%s\n", header->magic);
+    printf("%d\n", strcmp(header->magic, TMAGIC));
+    // vérifie que la magic value vaut ustar\0
+    if (strcmp(header->magic, TMAGIC) != 0) return -1;
+
+    // vérifie char par char car strcmp prend en compte les \0, or ici il ne
+    // devrait pas y en avoir
+    if (header->version[0] != '0' || header->version[1] != 0) return -2;
+
+    // calcul du checksum en additionnant tous les bytes
+    long chksum = 0;
+    for (int i = 0; i < 148; i++) chksum += *(((char*)header)+i);
+    for (int i = 156; i < 512; i++) chksum += *(((char*)header)+i);
+    if (chksum != *((long*)header->chksum)) return -3;
+
     return 0;
 }
 
