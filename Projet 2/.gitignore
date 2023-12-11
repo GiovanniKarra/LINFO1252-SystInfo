@@ -1,1 +1,3 @@
-archive.tar\n*.o\ntests
+archive.tar
+*.o
+tests
