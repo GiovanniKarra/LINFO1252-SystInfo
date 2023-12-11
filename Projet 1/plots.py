@@ -42,11 +42,11 @@ def perfplot(filename : str, title : str, filename2 : str, filename3 : str = Non
         plt.fill_between(range(1, len(nb_de_threads)+1), moyenne3+ecart3, moyenne3-ecart3, alpha=0.4)
 
     if filename == "mesures_spinlock.csv":
-        plt.legend(["test and set", "moyenne ± écrart type", "test and test and set",
-                    "moyenne ± écrart type", "backoff TATAS", "moyenne ± écrart type"])
+        plt.legend(["test and set", "moyenne ± écart type", "test and test and set",
+                    "moyenne ± écart type", "backoff TATAS", "moyenne ± écart type"])
     else:
-        plt.legend(["POSIX", "moyenne ± écrart type", "attente active (TATAS)",
-                    "moyenne ± écrart type"])
+        plt.legend(["POSIX", "moyenne ± écart type", "attente active (TATAS)",
+                    "moyenne ± écart type"])
 
     plt.ylim(ymin=0)
 
