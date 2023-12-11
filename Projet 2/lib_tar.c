@@ -1,6 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <math.h>
+#include <sys/stat.h>
 
 #include "lib_tar.h"
 
@@ -20,27 +22,47 @@
  *         -3 if the archive contains a header with an invalid checksum value
  */
 int check_archive(int tar_fd) {
-    tar_header_t *header = (tar_header_t*)malloc(sizeof(tar_header_t));
-    if (header == NULL) fprintf(stderr, "malloc error\n");
+    struct stat *stats = (struct stat*)malloc(sizeof(struct stat));
+    if (stats == NULL) goto stat_error;
 
-    read(tar_fd, header, sizeof(tar_header_t));
+    fstat(tar_fd, stats);
+    
+    tar_header_t *header = (tar_header_t*)malloc(sizeof(tar_header_t)*stats->st_size);
+    if (header == NULL) goto header_error;
 
-    printf("%s\n", header->magic);
-    printf("%d\n", strcmp(header->magic, TMAGIC));
-    // vérifie que la magic value vaut ustar\0
-    if (strcmp(header->magic, TMAGIC) != 0) return -1;
+    for (int i = 0; i < stats->st_size/sizeof(tar_header_t); i++) {
+        read(tar_fd, header+i, sizeof(tar_header_t));
 
-    // vérifie char par char car strcmp prend en compte les \0, or ici il ne
-    // devrait pas y en avoir
-    if (header->version[0] != '0' || header->version[1] != 0) return -2;
+        char *tocmp = (char*)malloc(sizeof(char)*6);
+        if (tocmp == NULL) goto tocmp_error;
 
-    // calcul du checksum en additionnant tous les bytes
-    long chksum = 0;
-    for (int i = 0; i < 148; i++) chksum += *(((char*)header)+i);
-    for (int i = 156; i < 512; i++) chksum += *(((char*)header)+i);
-    if (chksum != *((long*)header->chksum)) return -3;
+        strcpy(tocmp, (header+i)->magic);
+        tocmp[5] = '\0';
+        // vérifie que la magic value vaut ustar\0
+        if (strcmp(tocmp, TMAGIC) != 0) return -1;
+
+        // vérifie char par char car strcmp prend en compte les \0, or ici il ne
+        // devrait pas y en avoir
+        if ((header+i)->version[0] != '0' || (header+i)->version[1] != '0') return -2;
+
+        // calcul du checksum en additionnant tous les bytes
+        unsigned long chksum = 0;
+        for (int j = 0; j < 148; j++) chksum += *(((char*)(header+i))+j);
+        for (int j = 156; j < 512; j++) chksum += *(((char*)(header+i))+j);
+        printf("checksum réel : %ld\n", *((long*)(header+i)->chksum));
+        printf("checksum calculé : %ld\n", chksum);
+        if (chksum != *((unsigned long*)(header+i)->chksum)) return -3;
+    }
 
     return 0;
+
+    tocmp_error:
+        free(header);
+    header_error:
+        free(stats);
+    stat_error:
+        fprintf(stderr, "malloc error\n");
+        return 1;
 }
 
 /**

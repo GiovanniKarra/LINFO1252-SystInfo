@@ -1,6 +1,7 @@
 MAKEFLAGS += --silent
 
 CFLAGS=-g -Wall -Werror
+LDLIBS=-lm
 CC = gcc
 RM = lib_tar.o tests soumission.tar
 
