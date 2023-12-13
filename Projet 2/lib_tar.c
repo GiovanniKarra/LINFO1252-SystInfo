@@ -56,7 +56,7 @@ int check_archive(int tar_fd) {
 
         // vérifie char par char car strcmp prend en compte les \0, or ici il ne
         // devrait pas y en avoir
-        if (header->version[0] != '0' || header->version[1] != '0')
+        if (header->version[0] != TVERSION[0] || header->version[1] != TVERSION[1])
             { err = -2; goto error; }
 
         // calcul du checksum en additionnant tous les bytes
@@ -66,7 +66,7 @@ int check_archive(int tar_fd) {
         chksum += 256; // les espaces du champ chksum vide
         if (chksum != TAR_INT(header->chksum)) { err = -3; goto error; }
         
-        // printf("%s : %c\n", header->name, header->typeflag);
+        printf("%s : %c\n", header->name, header->typeflag);
         int offset = TAR_INT(header->size);
         if (offset != 0) offset += 512-(offset%512); // car blocs de 512 bytes
         lseek(tar_fd, offset, SEEK_CUR);
