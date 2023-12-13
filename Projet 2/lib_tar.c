@@ -16,6 +16,7 @@ bool allzeros(tar_header_t *header) {
     return true;
 }
 
+
 /**
  * Checks whether the archive is valid.
  *
@@ -64,7 +65,8 @@ int check_archive(int tar_fd) {
         for (int j = 156; j < 512; j++) chksum += *(((char*)header)+j);
         chksum += 256; // les espaces du champ chksum vide
         if (chksum != TAR_INT(header->chksum)) { err = -3; goto error; }
-
+        
+        // printf("%s : %c\n", header->name, header->typeflag);
         int offset = TAR_INT(header->size);
         if (offset != 0) offset += 512-(offset%512); // car blocs de 512 bytes
         lseek(tar_fd, offset, SEEK_CUR);
@@ -72,14 +74,15 @@ int check_archive(int tar_fd) {
     }
 
     err = count; // on veut return le nombre de headers
+    lseek(tar_fd, 0, SEEK_SET);
 
     error:
         free(header);
     header_error:
         free(stats);
     stat_error:
-        if (err == -4) { fprintf(stderr, "malloc error\n");    exit(1); }
-        if (err == -5) { fprintf(stderr, "file read error\n"); exit(1); }
+        if (err == -4) { perror("malloc error\n");    exit(1); }
+        if (err == -5) { perror("file read error\n"); exit(1); }
 
     return err;
 }
@@ -108,11 +111,10 @@ int exists(int tar_fd, char *path) {
     while (true) {
         err = read(tar_fd, header, sizeof(tar_header_t));
         if (err == -1) { err = -1; break; }
-
         if (allzeros(header)) break;
         
         if (strcmp(path, header->name) == 0) {
-            toret = 1;
+            toret = lseek(tar_fd, 0, SEEK_CUR);
             break;
         }
 
@@ -121,14 +123,29 @@ int exists(int tar_fd, char *path) {
         lseek(tar_fd, offset, SEEK_CUR);
     }
 
+    lseek(tar_fd, 0, SEEK_SET);
+
     stat_error:
         free(stats);
     header_error:
         free(header);
-    if (err == -1) { fprintf(stderr, "ERROR\n"); exit(1); }
+    if (err == -1) { perror("ERROR\n"); exit(1); }
 
     return toret;
+}
 
+// returns 0 if ok, -1 if error, 1 if doesn't exist
+int get_header(int tar_fd, char *path, tar_header_t *header) {
+    int offset = exists(tar_fd, path);
+    if (offset == 0) return 1;
+
+    lseek(tar_fd, offset-sizeof(tar_header_t), SEEK_SET);
+
+    int err = read(tar_fd, header, sizeof(tar_header_t));
+    if (err == -1) return -1;
+
+    lseek(tar_fd, 0, SEEK_SET);
+    return 0;
 }
 
 /**
@@ -141,7 +158,20 @@ int exists(int tar_fd, char *path) {
  *         any other value otherwise.
  */
 int is_dir(int tar_fd, char *path) {
-    return 0;
+    int toret = false;
+
+    tar_header_t *header = (tar_header_t*)malloc(sizeof(tar_header_t));
+    if (header == NULL) { perror("malloc error\n"); exit(1); }
+
+    int err = get_header(tar_fd, path, header);
+    if (err == -1) { free(header); perror("read error\n"); exit(1); }
+    if (err == 1) return 0;
+
+    if (header->typeflag == DIRTYPE) toret = true;
+
+    free(header);
+
+    return toret;
 }
 
 /**
@@ -154,7 +184,20 @@ int is_dir(int tar_fd, char *path) {
  *         any other value otherwise.
  */
 int is_file(int tar_fd, char *path) {
-    return 0;
+    int toret = false;
+
+    tar_header_t *header = (tar_header_t*)malloc(sizeof(tar_header_t));
+    if (header == NULL) { perror("malloc error\n"); exit(1); }
+
+    int err = get_header(tar_fd, path, header);
+    if (err == -1) { free(header); perror("read error\n"); exit(1); }
+    if (err == 1) return 0;
+
+    if (header->typeflag == REGTYPE) toret = true;
+
+    free(header);
+
+    return toret;
 }
 
 /**
@@ -166,7 +209,20 @@ int is_file(int tar_fd, char *path) {
  *         any other value otherwise.
  */
 int is_symlink(int tar_fd, char *path) {
-    return 0;
+    int toret = false;
+
+    tar_header_t *header = (tar_header_t*)malloc(sizeof(tar_header_t));
+    if (header == NULL) { perror("malloc error\n"); exit(1); }
+
+    int err = get_header(tar_fd, path, header);
+    if (err == -1) { free(header); perror("read error\n"); exit(1); }
+    if (err == 1) return 0;
+
+    if (header->typeflag == LNKTYPE) toret = true;
+
+    free(header);
+
+    return toret;
 }
 
 
@@ -193,6 +249,7 @@ int is_symlink(int tar_fd, char *path) {
  *         any other value otherwise.
  */
 int list(int tar_fd, char *path, char **entries, size_t *no_entries) {
+
     return 0;
 }
 

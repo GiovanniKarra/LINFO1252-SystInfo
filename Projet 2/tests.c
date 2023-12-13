@@ -39,21 +39,40 @@ int main(int argc, char **argv) {
     int ret = check_archive(fd);
     printf("check_archive returned %d\n\n", ret);
 
-    lseek(fd, 0, SEEK_SET);
     ret = exists(fd, "lib_tar.c");
     printf("exists(lib_tar.c) returned %d\n", ret);
 
-    lseek(fd, 0, SEEK_SET);
     ret = exists(fd, "fake.c");
     printf("exists(fake.c) returned %d\n", ret);
 
-    lseek(fd, 0, SEEK_SET);
     ret = exists(fd, "test/");
     printf("exists(test/) returned %d\n", ret);
 
-    lseek(fd, 0, SEEK_SET);
     ret = exists(fd, "test/test.txt");
     printf("exists(test/test.txt) returned %d\n\n", ret);
+
+    ret = is_dir(fd, "test/");
+    printf("is_dir(test/) returned %d\n", ret);
+    ret = is_dir(fd, "lib_tar.h");
+    printf("is_dir(lib_tar.h) returned %d\n", ret);
+    ret = is_dir(fd, "test/test.txt");
+    printf("is_dir(test/test.txt) returned %d\n\n", ret);
+
+    ret = is_file(fd, "test/");
+    printf("is_file(test/) returned %d\n", ret);
+    ret = is_file(fd, "lib_tar.h");
+    printf("is_file(lib_tar.h) returned %d\n", ret);
+    ret = is_file(fd, "test/test.txt");
+    printf("is_file(test/test.txt) returned %d\n\n", ret);
+
+    ret = is_symlink(fd, "test/");
+    printf("is_symlink(test/) returned %d\n", ret);
+    ret = is_symlink(fd, "lib_tar.h");
+    printf("is_symlink(lib_tar.h) returned %d\n", ret);
+    ret = is_symlink(fd, "test/test.txt");
+    printf("is_symlink(test/test.txt) returned %d\n", ret);
+    ret = is_symlink(fd, "testlink");
+    printf("is_symlink(testlink) returned %d\n\n", ret);
 
     return 0;
 }
