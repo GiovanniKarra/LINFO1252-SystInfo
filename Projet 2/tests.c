@@ -74,5 +74,20 @@ int main(int argc, char **argv) {
     ret = is_symlink(fd, "testlink");
     printf("is_symlink(testlink) returned %d\n\n", ret);
 
+    size_t len = 50;
+    unsigned char *str1 = (unsigned char*)malloc(len);
+    ret = read_file(fd, "test/test.txt", 0, str1, &len);
+    printf("contenu de test/test.txt : (longeur %ld) (return : %d)\n%s\n", len, ret, str1);
+
+    len = 2000;
+    unsigned char *str2 = (unsigned char*)malloc(len);
+    ret = read_file(fd, "lib_tar.h", 0, str2, &len);
+    printf("contenu de lib_tar.h : (longeur %ld) (return : %d)\n%s\n", len, ret, str2);
+
+    len = 50;
+    unsigned char *str3 = (unsigned char*)malloc(len);
+    ret = read_file(fd, "testlink", 0, str3, &len);
+    printf("contenu de testlink : (longeur %ld) (return : %d)\n%s\n", len, ret, str3);
+
     return 0;
 }

@@ -1,9 +1,11 @@
 #include <stdio.h>
+#include <limits.h>
 #include <stdlib.h>
 #include <stdbool.h>
 #include <unistd.h>
 #include <string.h>
 #include <math.h>
+#include <errno.h>
 #include <sys/stat.h>
 
 #include "lib_tar.h"
@@ -135,7 +137,7 @@ int exists(int tar_fd, char *path) {
 }
 
 // returns 0 if ok, -1 if error, 1 if doesn't exist
-int get_header(int tar_fd, char *path, tar_header_t *header) {
+int get_header(int tar_fd, char *path, tar_header_t *header, bool seek_back) {
     int offset = exists(tar_fd, path);
     if (offset == 0) return 1;
 
@@ -144,7 +146,7 @@ int get_header(int tar_fd, char *path, tar_header_t *header) {
     int err = read(tar_fd, header, sizeof(tar_header_t));
     if (err == -1) return -1;
 
-    lseek(tar_fd, 0, SEEK_SET);
+    if (seek_back) lseek(tar_fd, 0, SEEK_SET);
     return 0;
 }
 
@@ -163,7 +165,7 @@ int is_dir(int tar_fd, char *path) {
     tar_header_t *header = (tar_header_t*)malloc(sizeof(tar_header_t));
     if (header == NULL) { perror("malloc error\n"); exit(1); }
 
-    int err = get_header(tar_fd, path, header);
+    int err = get_header(tar_fd, path, header, true);
     if (err == -1) { free(header); perror("read error\n"); exit(1); }
     if (err == 1) return 0;
 
@@ -189,7 +191,7 @@ int is_file(int tar_fd, char *path) {
     tar_header_t *header = (tar_header_t*)malloc(sizeof(tar_header_t));
     if (header == NULL) { perror("malloc error\n"); exit(1); }
 
-    int err = get_header(tar_fd, path, header);
+    int err = get_header(tar_fd, path, header, true);
     if (err == -1) { free(header); perror("read error\n"); exit(1); }
     if (err == 1) return 0;
 
@@ -214,7 +216,7 @@ int is_symlink(int tar_fd, char *path) {
     tar_header_t *header = (tar_header_t*)malloc(sizeof(tar_header_t));
     if (header == NULL) { perror("malloc error\n"); exit(1); }
 
-    int err = get_header(tar_fd, path, header);
+    int err = get_header(tar_fd, path, header, true);
     if (err == -1) { free(header); perror("read error\n"); exit(1); }
     if (err == 1) return 0;
 
@@ -272,5 +274,35 @@ int list(int tar_fd, char *path, char **entries, size_t *no_entries) {
  *
  */
 ssize_t read_file(int tar_fd, char *path, size_t offset, uint8_t *dest, size_t *len) {
-    return 0;
+    bool sym = is_symlink(tar_fd, path);
+    if (!is_file(tar_fd, path)) {
+        if (sym) {
+            char *link_path = (char*)malloc(100);
+            int ret = readlink(path, link_path, (size_t)100);
+            ret = errno;
+            printf("%s, %d\n", link_path, ret);
+        }
+        else return -1;
+    }
+    
+    tar_header_t *header = (tar_header_t*)malloc(sizeof(tar_header_t));
+    if (header == NULL) { perror("malloc error\n"); exit(1); }
+
+    int err = get_header(tar_fd, path, header, false);
+    if (err == -1) { perror("read error\n"); exit(1); }
+
+    if (offset > TAR_INT(header->size)) return -2;
+    
+    size_t toread = TAR_INT(header->size)-offset;
+    if (*len < toread) toread = *len;
+    err = read(tar_fd, dest, toread);
+    if (err == -1) { perror("read error\n"); exit(1); }
+
+    *len = err;
+    int toret = TAR_INT(header->size)-offset-err;
+
+    free(header);
+    lseek(tar_fd, 0, SEEK_SET);
+
+    return toret;
 }
