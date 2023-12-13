@@ -1,3 +1,4 @@
 *.tar
 *.o
 tests
+test/

@@ -1,10 +1,20 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdbool.h>
+#include <unistd.h>
 #include <string.h>
 #include <math.h>
 #include <sys/stat.h>
 
 #include "lib_tar.h"
+
+bool allzeros(tar_header_t *header) {
+    char *ptr = (char*)header;
+    for (int i = 0; i < sizeof(tar_header_t)*2; i++)
+        if (ptr[i] != 0) return false;
+
+    return true;
+}
 
 /**
  * Checks whether the archive is valid.
@@ -22,47 +32,56 @@
  *         -3 if the archive contains a header with an invalid checksum value
  */
 int check_archive(int tar_fd) {
+    int err = 0;
+    int count = 0; // nombre de headers non-nuls
+
     struct stat *stats = (struct stat*)malloc(sizeof(struct stat));
-    if (stats == NULL) goto stat_error;
+    if (stats == NULL) { err = -4; goto stat_error; }
 
     fstat(tar_fd, stats);
     
-    tar_header_t *header = (tar_header_t*)malloc(sizeof(tar_header_t)*stats->st_size);
-    if (header == NULL) goto header_error;
+    tar_header_t *header = (tar_header_t*)malloc(stats->st_size);
+    if (header == NULL) { err = -4; goto header_error; }
 
-    for (int i = 0; i < stats->st_size/sizeof(tar_header_t); i++) {
-        read(tar_fd, header+i, sizeof(tar_header_t));
+    while (true) {
+        err = read(tar_fd, header, sizeof(tar_header_t));
+        if (err == -1) { err = -5; goto error; }
 
-        char *tocmp = (char*)malloc(sizeof(char)*6);
-        if (tocmp == NULL) goto tocmp_error;
-
-        strcpy(tocmp, (header+i)->magic);
-        tocmp[5] = '\0';
+        if (allzeros(header)) break;
+        
         // vérifie que la magic value vaut ustar\0
-        if (strcmp(tocmp, TMAGIC) != 0) return -1;
+        int cmp = strcmp(header->magic, TMAGIC);
+        if (cmp != 0) { err = -1; goto error; }
 
         // vérifie char par char car strcmp prend en compte les \0, or ici il ne
         // devrait pas y en avoir
-        if ((header+i)->version[0] != '0' || (header+i)->version[1] != '0') return -2;
+        if (header->version[0] != '0' || header->version[1] != '0')
+            { err = -2; goto error; }
 
         // calcul du checksum en additionnant tous les bytes
         unsigned long chksum = 0;
-        for (int j = 0; j < 148; j++) chksum += *(((char*)(header+i))+j);
-        for (int j = 156; j < 512; j++) chksum += *(((char*)(header+i))+j);
-        printf("checksum réel : %ld\n", *((long*)(header+i)->chksum));
-        printf("checksum calculé : %ld\n", chksum);
-        if (chksum != *((unsigned long*)(header+i)->chksum)) return -3;
+        for (int j = 0; j < 148; j++) chksum += *(((char*)header)+j);
+        for (int j = 156; j < 512; j++) chksum += *(((char*)header)+j);
+        chksum += 256; // les espaces du champ chksum vide
+        if (chksum != TAR_INT(header->chksum)) { err = -3; goto error; }
+
+        int offset = TAR_INT(header->size);
+        if (offset != 0) offset += 512-(offset%512); // car blocs de 512 bytes
+        lseek(tar_fd, offset, SEEK_CUR);
+        count++;
     }
 
-    return 0;
+    err = count; // on veut return le nombre de headers
 
-    tocmp_error:
+    error:
         free(header);
     header_error:
         free(stats);
     stat_error:
-        fprintf(stderr, "malloc error\n");
-        return 1;
+        if (err == -4) { fprintf(stderr, "malloc error\n");    exit(1); }
+        if (err == -5) { fprintf(stderr, "file read error\n"); exit(1); }
+
+    return err;
 }
 
 /**
@@ -75,7 +94,41 @@ int check_archive(int tar_fd) {
  *         any other value otherwise.
  */
 int exists(int tar_fd, char *path) {
-    return 0;
+    int err = 0;
+    int toret = 0;
+
+    struct stat *stats = (struct stat*)malloc(sizeof(struct stat));
+    if (stats == NULL) { err = -1; goto stat_error; }
+
+    fstat(tar_fd, stats);
+    
+    tar_header_t *header = (tar_header_t*)malloc(stats->st_size);
+    if (header == NULL) { err = -1; goto header_error; }
+
+    while (true) {
+        err = read(tar_fd, header, sizeof(tar_header_t));
+        if (err == -1) { err = -1; break; }
+
+        if (allzeros(header)) break;
+        
+        if (strcmp(path, header->name) == 0) {
+            toret = 1;
+            break;
+        }
+
+        int offset = TAR_INT(header->size);
+        if (offset != 0) offset += 512-(offset%512); // car blocs de 512 bytes
+        lseek(tar_fd, offset, SEEK_CUR);
+    }
+
+    stat_error:
+        free(stats);
+    header_error:
+        free(header);
+    if (err == -1) { fprintf(stderr, "ERROR\n"); exit(1); }
+
+    return toret;
+
 }
 
 /**

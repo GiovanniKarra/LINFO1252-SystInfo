@@ -37,7 +37,23 @@ int main(int argc, char **argv) {
     }
 
     int ret = check_archive(fd);
-    printf("check_archive returned %d\n", ret);
+    printf("check_archive returned %d\n\n", ret);
+
+    lseek(fd, 0, SEEK_SET);
+    ret = exists(fd, "lib_tar.c");
+    printf("exists(lib_tar.c) returned %d\n", ret);
+
+    lseek(fd, 0, SEEK_SET);
+    ret = exists(fd, "fake.c");
+    printf("exists(fake.c) returned %d\n", ret);
+
+    lseek(fd, 0, SEEK_SET);
+    ret = exists(fd, "test/");
+    printf("exists(test/) returned %d\n", ret);
+
+    lseek(fd, 0, SEEK_SET);
+    ret = exists(fd, "test/test.txt");
+    printf("exists(test/test.txt) returned %d\n\n", ret);
 
     return 0;
 }
