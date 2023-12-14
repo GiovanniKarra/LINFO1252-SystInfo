@@ -18,7 +18,6 @@ bool allzeros(tar_header_t *header) {
     return true;
 }
 
-
 /**
  * Checks whether the archive is valid.
  *
@@ -46,7 +45,7 @@ int check_archive(int tar_fd) {
     tar_header_t *header = (tar_header_t*)malloc(stats->st_size);
     if (header == NULL) { err = -4; goto header_error; }
 
-    while (true) {
+    while (lseek(tar_fd, 0, SEEK_CUR) < stats->st_size) {
         err = read(tar_fd, header, sizeof(tar_header_t));
         if (err == -1) { err = -5; goto error; }
 
@@ -68,7 +67,7 @@ int check_archive(int tar_fd) {
         chksum += 256; // les espaces du champ chksum vide
         if (chksum != TAR_INT(header->chksum)) { err = -3; goto error; }
         
-        printf("%s : %c\n", header->name, header->typeflag);
+        // printf("%s : %c\n", header->name, header->typeflag);
         int offset = TAR_INT(header->size);
         if (offset != 0) offset += 512-(offset%512); // car blocs de 512 bytes
         lseek(tar_fd, offset, SEEK_CUR);
@@ -110,7 +109,7 @@ int exists(int tar_fd, char *path) {
     tar_header_t *header = (tar_header_t*)malloc(stats->st_size);
     if (header == NULL) { err = -1; goto header_error; }
 
-    while (true) {
+    while (lseek(tar_fd, 0, SEEK_CUR) < stats->st_size) {
         err = read(tar_fd, header, sizeof(tar_header_t));
         if (err == -1) { err = -1; break; }
         if (allzeros(header)) break;
@@ -142,7 +141,7 @@ int get_header(int tar_fd, char *path, tar_header_t *header, bool seek_back) {
     if (offset == 0) return 1;
 
     lseek(tar_fd, offset-sizeof(tar_header_t), SEEK_SET);
-
+    
     int err = read(tar_fd, header, sizeof(tar_header_t));
     if (err == -1) return -1;
 
@@ -220,7 +219,7 @@ int is_symlink(int tar_fd, char *path) {
     if (err == -1) { free(header); perror("read error\n"); exit(1); }
     if (err == 1) return 0;
 
-    if (header->typeflag == LNKTYPE) toret = true;
+    if (header->typeflag == LNKTYPE || header->typeflag == SYMTYPE) toret = true;
 
     free(header);
 
@@ -275,15 +274,7 @@ int list(int tar_fd, char *path, char **entries, size_t *no_entries) {
  */
 ssize_t read_file(int tar_fd, char *path, size_t offset, uint8_t *dest, size_t *len) {
     bool sym = is_symlink(tar_fd, path);
-    if (!is_file(tar_fd, path)) {
-        if (sym) {
-            char *link_path = (char*)malloc(100);
-            int ret = readlink(path, link_path, (size_t)100);
-            ret = errno;
-            printf("%s, %d\n", link_path, ret);
-        }
-        else return -1;
-    }
+    if (!is_file(tar_fd, path) && !sym) return -1;
     
     tar_header_t *header = (tar_header_t*)malloc(sizeof(tar_header_t));
     if (header == NULL) { perror("malloc error\n"); exit(1); }
@@ -291,10 +282,17 @@ ssize_t read_file(int tar_fd, char *path, size_t offset, uint8_t *dest, size_t *
     int err = get_header(tar_fd, path, header, false);
     if (err == -1) { perror("read error\n"); exit(1); }
 
+    if (sym) {
+        int ret = read_file(tar_fd, header->linkname, offset, dest, len);
+        free(header);
+        return ret;
+    }
+
     if (offset > TAR_INT(header->size)) return -2;
     
     size_t toread = TAR_INT(header->size)-offset;
     if (*len < toread) toread = *len;
+    lseek(tar_fd, offset, SEEK_CUR);
     err = read(tar_fd, dest, toread);
     if (err == -1) { perror("read error\n"); exit(1); }
 
