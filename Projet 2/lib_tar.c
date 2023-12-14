@@ -42,7 +42,7 @@ int check_archive(int tar_fd) {
 
     fstat(tar_fd, stats);
     
-    tar_header_t *header = (tar_header_t*)malloc(stats->st_size);
+    tar_header_t *header = (tar_header_t*)malloc(sizeof(tar_header_t)*2);
     if (header == NULL) { err = -4; goto header_error; }
 
     while (lseek(tar_fd, 0, SEEK_CUR) < stats->st_size) {
@@ -98,6 +98,8 @@ int check_archive(int tar_fd) {
  *         any other value otherwise.
  */
 int exists(int tar_fd, char *path) {
+    lseek(tar_fd, 0, SEEK_SET);
+
     int err = 0;
     int toret = 0;
 
@@ -106,7 +108,7 @@ int exists(int tar_fd, char *path) {
 
     fstat(tar_fd, stats);
     
-    tar_header_t *header = (tar_header_t*)malloc(stats->st_size);
+    tar_header_t *header = (tar_header_t*)malloc(sizeof(tar_header_t)*2);
     if (header == NULL) { err = -1; goto header_error; }
 
     while (lseek(tar_fd, 0, SEEK_CUR) < stats->st_size) {
@@ -161,6 +163,7 @@ int get_header(int tar_fd, char *path, tar_header_t *header, bool seek_back) {
 int is_dir(int tar_fd, char *path) {
     int toret = false;
 
+    // printf("SPECIAL : %s;\n", path);
     tar_header_t *header = (tar_header_t*)malloc(sizeof(tar_header_t));
     if (header == NULL) { perror("malloc error\n"); exit(1); }
 
@@ -226,6 +229,43 @@ int is_symlink(int tar_fd, char *path) {
     return toret;
 }
 
+// returns 0 if not dir, offset otherwise
+size_t get_dir_offset(int tar_fd, char *path, size_t init_offset) {
+    if (!is_dir(tar_fd, path)) return 0;
+
+    // printf("INIT_OFFSET : %ld\n", init_offset);
+
+    tar_header_t *header = (tar_header_t*)malloc(sizeof(tar_header_t)*2);
+    if (header == NULL) { perror("malloc error\n"); exit(1); }
+
+    int err = get_header(tar_fd, path, header, false);
+    if (err == -1) { free(header); perror("read error\n"); exit(1); }
+    if (err == 1) return 0;
+
+    // printf("start dir get : %s\n", path);
+    while (strncmp(header->name, path, strlen(path)) == 0) {
+        err = read(tar_fd, header, sizeof(tar_header_t));
+        if (err == -1) { err = -1; break; }
+        if (allzeros(header)) break;
+
+        if (strncmp(header->name, path, strlen(path)) != 0)
+        { lseek(tar_fd, -512, SEEK_CUR); break; }
+
+        // printf("\tgetdiroffset : %s\n", header->name);
+        int offset = TAR_INT(header->size);
+        if (offset != 0) offset += 512-(offset%512); // car blocs de 512 bytes
+        lseek(tar_fd, offset, SEEK_CUR);
+    }
+
+    int toret = lseek(tar_fd, 0, SEEK_CUR)-init_offset;
+    lseek(tar_fd, init_offset, SEEK_SET);
+
+    // printf("\n\treturned : %d\n\tinit_offset : %ld\n\tcurrent_offset : %ld\n"
+    //     , toret, init_offset, lseek(tar_fd, 0, SEEK_CUR));
+
+    return toret;
+}
+
 
 /**
  * Lists the entries at a given path in the archive.
@@ -250,8 +290,57 @@ int is_symlink(int tar_fd, char *path) {
  *         any other value otherwise.
  */
 int list(int tar_fd, char *path, char **entries, size_t *no_entries) {
+    if (!is_dir(tar_fd, path) && !is_symlink(tar_fd, path)) return 0;
 
-    return 0;
+    int err = 0;
+    int count = 0;
+    
+    tar_header_t *header = (tar_header_t*)malloc(sizeof(tar_header_t)*2);
+    if (header == NULL) { err = -1; goto header_error; }
+
+    get_header(tar_fd, path, header, true);
+
+    if (is_symlink(tar_fd, path)) {
+        int ret = list(tar_fd, header->linkname, entries, no_entries);
+        free(header);
+        return ret;
+    }
+
+    size_t init_offset = exists(tar_fd, path);
+    size_t size = get_dir_offset(tar_fd, path, init_offset);
+    
+    lseek(tar_fd, init_offset, SEEK_SET);
+    int offset = TAR_INT(header->size);
+    if (offset != 0) offset += 512-(offset%512); // car blocs de 512 bytes
+    lseek(tar_fd, offset, SEEK_CUR);
+    
+    while (lseek(tar_fd, 0, SEEK_CUR)-init_offset < size) {
+        err = read(tar_fd, header, sizeof(tar_header_t));
+        if (err == -1) { err = -1; break; }
+        if (allzeros(header)) break;
+
+        size_t ioff = lseek(tar_fd, 0, SEEK_CUR);
+        lseek(tar_fd, ioff, SEEK_SET);
+
+        strcpy(entries[count], header->name);
+        count++;
+
+        size_t offset = TAR_INT(header->size) +
+            get_dir_offset(tar_fd, header->name, lseek(tar_fd, 0, SEEK_CUR));
+        if (offset != 0) offset += 512-(offset%512); // car blocs de 512 bytes
+        lseek(tar_fd, ioff, SEEK_SET);
+
+        lseek(tar_fd, offset, SEEK_CUR);
+    }
+
+    lseek(tar_fd, 0, SEEK_SET);
+    *no_entries = count;
+
+    header_error:
+        free(header);
+    if (err == -1) { perror("ERROR\n"); exit(1); }
+
+    return 1;
 }
 
 /**

@@ -41,15 +41,14 @@ int main(int argc, char **argv) {
 
     // ret = exists(fd, "lib_tar.c");
     // printf("exists(lib_tar.c) returned %d\n", ret);
-
     // ret = exists(fd, "fake.c");
     // printf("exists(fake.c) returned %d\n", ret);
-
     // ret = exists(fd, "test/");
     // printf("exists(test/) returned %d\n", ret);
-
     // ret = exists(fd, "test/test.txt");
     // printf("exists(test/test.txt) returned %d\n\n", ret);
+    // ret = exists(fd, "test/test3/");
+    // printf("exists(test/test3/) returned %d\n\n", ret);
 
     // ret = is_dir(fd, "test/");
     // printf("is_dir(test/) returned %d\n", ret);
@@ -93,6 +92,21 @@ int main(int argc, char **argv) {
     // unsigned char *str4 = (unsigned char*)malloc(len);
     // ret = read_file(fd, "folderlinktest", 0, str4, &len);
     // printf("contenu de folderlinktest : (longeur %ld) (return : %d)\n%s\n", len, ret, str4);
+
+    size_t entry_num = 50;
+    char **entries = (char**)malloc(50*sizeof(char*));
+    for (int i = 0; i < entry_num; i++) entries[i] = (char*)malloc(100);
+    list(fd, "folderlinktest", entries, &entry_num);
+    printf("list folderlinktest : (entrynum = %ld)\n", entry_num);
+    for (int i = 0; i < entry_num; i++) printf("%s\n", entries[i]);
+    printf("\n");
+
+    size_t entry_num2 = 50;
+    char **entries2 = (char**)malloc(50*sizeof(char*));
+    for (int i = 0; i < entry_num2; i++) entries2[i] = (char*)malloc(100);
+    list(fd, "test/test3/", entries2, &entry_num2);
+    printf("list test/test3/ : (entrynum = %ld)\n", entry_num2);
+    for (int i = 0; i < entry_num2; i++) printf("%s\n", entries2[i]);
 
     return 0;
 }
