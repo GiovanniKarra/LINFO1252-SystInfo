@@ -52,8 +52,9 @@ int check_archive(int tar_fd) {
         if (allzeros(header)) break;
         
         // vérifie que la magic value vaut ustar\0
-        int cmp = strcmp(header->magic, TMAGIC);
-        if (cmp != 0) { err = -1; goto error; }
+        int len = strlen(header->magic);
+        int cmp = strncmp(header->magic, TMAGIC, len);
+        if (len+1 != TMAGLEN || cmp != 0) { err = -1; goto error; }
 
         // vérifie char par char car strcmp prend en compte les \0, or ici il ne
         // devrait pas y en avoir
@@ -67,7 +68,7 @@ int check_archive(int tar_fd) {
         chksum += 256; // les espaces du champ chksum vide
         if (chksum != TAR_INT(header->chksum)) { err = -3; goto error; }
         
-        // printf("%s : %c\n", header->name, header->typeflag);
+        // printf("%s : %s\n", header->name, header->magic);
         int offset = TAR_INT(header->size);
         if (offset != 0) offset += 512-(offset%512); // car blocs de 512 bytes
         lseek(tar_fd, offset, SEEK_CUR);
@@ -301,8 +302,12 @@ int list(int tar_fd, char *path, char **entries, size_t *no_entries) {
     get_header(tar_fd, path, header, true);
 
     if (is_symlink(tar_fd, path)) {
-        int ret = list(tar_fd, header->linkname, entries, no_entries);
+        char *name = (char*)malloc(100);
+        strcpy(name, header->linkname);
+        strcat(name, "/");
+        int ret = list(tar_fd, name, entries, no_entries);
         free(header);
+        free(name);
         return ret;
     }
 
