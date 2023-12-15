@@ -12,7 +12,7 @@
 
 bool allzeros(tar_header_t *header) {
     char *ptr = (char*)header;
-    for (int i = 0; i < sizeof(tar_header_t)*2; i++)
+    for (int i = 0; i < sizeof(tar_header_t); i++)
         if (ptr[i] != 0) return false;
 
     return true;
@@ -42,14 +42,17 @@ int check_archive(int tar_fd) {
 
     fstat(tar_fd, stats);
     
-    tar_header_t *header = (tar_header_t*)malloc(sizeof(tar_header_t)*2);
+    tar_header_t *header = (tar_header_t*)malloc(sizeof(tar_header_t));
     if (header == NULL) { err = -4; goto header_error; }
 
     while (lseek(tar_fd, 0, SEEK_CUR) < stats->st_size) {
         err = read(tar_fd, header, sizeof(tar_header_t));
         if (err == -1) { err = -5; goto error; }
 
-        if (allzeros(header)) break;
+        if (allzeros(header)) {
+            read(tar_fd, header, sizeof(tar_header_t));
+            if (allzeros(header)) break;
+        }
         
         // vérifie que la magic value vaut ustar\0
         int len = strlen(header->magic);
@@ -109,13 +112,17 @@ int exists(int tar_fd, char *path) {
 
     fstat(tar_fd, stats);
     
-    tar_header_t *header = (tar_header_t*)malloc(sizeof(tar_header_t)*2);
+    tar_header_t *header = (tar_header_t*)malloc(sizeof(tar_header_t));
     if (header == NULL) { err = -1; goto header_error; }
 
     while (lseek(tar_fd, 0, SEEK_CUR) < stats->st_size) {
         err = read(tar_fd, header, sizeof(tar_header_t));
         if (err == -1) { err = -1; break; }
-        if (allzeros(header)) break;
+        
+        if (allzeros(header)) {
+            read(tar_fd, header, sizeof(tar_header_t));
+            if (allzeros(header)) break;
+        }
         
         if (strcmp(path, header->name) == 0) {
             toret = lseek(tar_fd, 0, SEEK_CUR);
@@ -236,7 +243,7 @@ size_t get_dir_offset(int tar_fd, char *path, size_t init_offset) {
 
     // printf("INIT_OFFSET : %ld\n", init_offset);
 
-    tar_header_t *header = (tar_header_t*)malloc(sizeof(tar_header_t)*2);
+    tar_header_t *header = (tar_header_t*)malloc(sizeof(tar_header_t));
     if (header == NULL) { perror("malloc error\n"); exit(1); }
 
     int err = get_header(tar_fd, path, header, false);
@@ -296,7 +303,7 @@ int list(int tar_fd, char *path, char **entries, size_t *no_entries) {
     int err = 0;
     int count = 0;
     
-    tar_header_t *header = (tar_header_t*)malloc(sizeof(tar_header_t)*2);
+    tar_header_t *header = (tar_header_t*)malloc(sizeof(tar_header_t));
     if (header == NULL) { err = -1; goto header_error; }
 
     get_header(tar_fd, path, header, true);
